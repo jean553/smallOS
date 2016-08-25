@@ -4,7 +4,7 @@ A very basic OS for self-learning purposes.
 
 ## Installation
 
-Bochs and Nasm are required to install and run PitiOS.
+Bochs and Nasm are required to install and run PititOS.
 
 ```
 apt-get install bochs nasm
@@ -18,4 +18,13 @@ make
 
 Code is compiled, virtual floppy disk is written 
 and Bochs is started automatically. At this moment,
-PitiOS should be speaking.
+PititOS should be speaking.
+
+## References
+
+I mainly use the following resources for development :
+ * http://www.brokenthorn.com/Resources/OSDevIndex.html - an **excellent** tutorial 
+about OS development from scratch
+ * http://www.gladir.com/CODER/ASM8086/index.htm - a very good reference for 80x86
+instructions and BIOS interrupts
+ * http://wiki.osdev.org/Main_Page - a lot of resources and short tutorials there...
