@@ -12,6 +12,8 @@ org 0x7c00
 ; machine is executing real mode (16 bits) mode (in 80x86 architecture)
 bits 16
 
+xor cl,cl ;set cl to 0
+
 ; directly jump to the instructions that reset the floppy disk
 jmp .reset_floppy
 
@@ -28,18 +30,18 @@ flp_error_msg db "Floppy disk error", 0
 ; ----------------------------------------------------------------------------
 
 .floppy_error:
-    xor bx, bx
-    mov ds, bx
-    mov es, bx
-    mov si, flp_error_msg
+    xor bx, bx ;set bx to 0
+    mov ds, bx ;data segment is equal to 0
+    mov si, flp_error_msg ;si is equal to the address where the message starts
 
     .loop:
-        lodsb
-        or al,al
-        jz .end
-        mov ah, 0x0e
-        int 0x10
-        jmp .loop
+        lodsb ;load ds:si in al, and increment si (store one letter in al and
+              ;jump to the next one
+        or al,al ;is al = 0 ? (end of the string)
+        jz .end ;if al = 0, jump to the end of the sector
+        mov ah, 0x0e ;the function to write one character is 0x0e
+        int 0x10 ;the video interrupt
+        jmp .loop ;jump to the beginning of the loop
 
 ; ----------------------------------------------------------------------------
 ; reset the floppy disk (force the floppy controller to get ready on the
