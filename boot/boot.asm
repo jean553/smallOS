@@ -12,6 +12,57 @@ org 0x7c00
 ; machine is executing real mode (16 bits) mode (in 80x86 architecture)
 bits 16
 
+; directly jump to the instructions that reset the floppy disk
+jmp .reset_floppy
+
+; ----------------------------------------------------------------------------
+; basic data of the bootsector (this way to do is special, should be in the
+; data sector normally, but this concept does not exist at this moment... :(
+; ----------------------------------------------------------------------------
+
+flp_error_msg db "Floppy disk error", 0
+
+; ----------------------------------------------------------------------------
+; executed when the floppy has an error (read/write), displays an error
+; message and halt the system
+; ----------------------------------------------------------------------------
+
+.floppy_error:
+    xor bx, bx
+    mov ds, bx
+    mov es, bx
+    mov si, flp_error_msg
+
+    .loop:
+        lodsb
+        or al,al
+        jz .end
+        mov ah, 0x0e
+        int 0x10
+        jmp .loop
+
+; ----------------------------------------------------------------------------
+; reset the floppy disk (force the floppy controller to get ready on the
+; first sector of the disk)
+; ----------------------------------------------------------------------------
+
+.reset_floppy:
+    cmp cl, 3 ;try three attemps only, jump to display an error message if
+              ;the function fails more 3 times
+    je .floppy_error
+    mov ah, 0 ;init disks function is 0
+    mov dl, 0 ;first floppy disk is 0, second one is 1
+    int 0x13 ;disk access interrupt, reset the disk
+    inc cl    ;increment the attempts amount
+    jb .reset_floppy ;jump back to the address of the beginning of the action
+                     ;if an error occured (cf=1, carry flag)
+
+; ----------------------------------------------------------------------------
+; end of the bootloader execution
+; ----------------------------------------------------------------------------
+
+.end:
+
 ; set the processor flaf IF to 0, disable the hardware interrupts, no
 ; interrupts will be handled from the execution of this instruction
 cli
