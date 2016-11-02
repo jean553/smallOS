@@ -1,2 +1,2 @@
-floppya: 1_44="floppy.img", status=inserted
-boot: floppy
+ata0-master: type=disk, path="hd.img", cylinders=20, heads=16, spt=63
+boot: disk

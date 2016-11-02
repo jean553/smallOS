@@ -116,7 +116,7 @@ reset_floppy:
               ;the function fails more 3 times
     je floppy_error
     mov ah, 0 ;init disks function is 0
-    mov dl, 0 ;first floppy disk is 0, second one is 1
+    mov dl, 0x80 ;first hard disk is 80, second one is 81
     int 0x13 ;disk access interrupt, reset the disk
     inc cl    ;increment the attempts amount
     jb reset_floppy ;jump back to the address of the beginning of the action

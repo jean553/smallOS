@@ -2,6 +2,13 @@
 
 A very basic OS for self-learning purposes.
 
+## Tasks in progress
+
+* Replacing floppy disk by hard disk. The bootsector program successfully resets
+the hard disk, but we have to make it automatically when running *make* and prevent
+the disk geometry error when Bochs starts. This disk has a size of 10 Megabytes and
+a CHS geometry of 20/16/63.
+
 ## Installation
 
 Bochs and Nasm are required to install and run PititOS.
