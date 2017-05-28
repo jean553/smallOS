@@ -16,19 +16,20 @@ fat_16: force_look
 mount: force_look
 	sudo mount -t vfat /dev/loop0 /mnt/
 
-	# does nothing for now, the drive is mounted
-	# in order to copy files through the FAT16 fs
-
-	sudo umount /mnt/
-	sudo losetup -d /dev/loop0
+copy: force_look
+	sudo cp boot/stage2.bin /mnt/stage2.bin
 
 boot_copy: force_look
 	dd if=boot/boot.bin of=hd.img count=1 conv=notrunc
 
+unmount: force_look
+	sudo umount /mnt/
+	sudo losetup -d /dev/loop0
+
 bochs: force_look
 	bochs -q
 
-all: boot.bin hd.img fat_16 mount boot_copy bochs
+all: boot.bin hd.img fat_16 mount copy unmount boot_copy bochs
 
 force_look:
 	true
