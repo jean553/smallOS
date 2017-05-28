@@ -1,22 +1,37 @@
 default: all
 
 boot.bin: force_look
-	cd boot; make	
+	cd boot; make
 
 hd.img: force_look
-	dd if=boot/boot.bin of=hd.img count=1
 
 	# fill the hard drive with zero until it gets a size of 10M
 	# (check .bochsrc for size details)
-	dd if=/dev/zero of=hd.img count=20159 seek=1
+	dd if=/dev/zero of=hd.img count=20160
+
+fat_16: force_look
+	sudo losetup /dev/loop0 hd.img
+	sudo mkfs.vfat -v -F16 /dev/loop0
+
+mount: force_look
+	sudo mount -t vfat /dev/loop0 /mnt/
+
+	# does nothing for now, the drive is mounted
+	# in order to copy files through the FAT16 fs
+
+	sudo umount /mnt/
+	sudo losetup -d /dev/loop0
+
+boot_copy: force_look
+	dd if=boot/boot.bin of=hd.img count=1 conv=notrunc
 
 bochs: force_look
 	bochs -q
 
-all: boot.bin hd.img bochs
+all: boot.bin hd.img fat_16 mount boot_copy bochs
 
 force_look:
 	true
 
-clean: 
+clean:
 	cd boot; make clean;
