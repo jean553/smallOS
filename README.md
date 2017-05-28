@@ -16,7 +16,7 @@ a CHS geometry of 20/16/63.
 Bochs and Nasm are required to install and run PititOS.
 
 ```
-apt-get install bochs nasm dosfstools 
+apt-get install bochs nasm dosfstools
 ```
 
 ## Make and run
@@ -25,18 +25,71 @@ apt-get install bochs nasm dosfstools
 make
 ```
 
-Code is compiled, virtual floppy disk is written 
+Code is compiled, virtual floppy disk is written
 and Bochs is started automatically. At this moment,
 PititOS should be speaking.
 
 ## References
 
 I mainly use the following resources for development :
- * http://www.brokenthorn.com/Resources/OSDevIndex.html - an **excellent** tutorial 
+ * http://www.brokenthorn.com/Resources/OSDevIndex.html - an **excellent** tutorial
 about OS development from scratch
  * http://www.gladir.com/CODER/ASM8086/index.htm - a very good reference for 80x86
 instructions and BIOS interrupts
+ * http://www.maverick-os.dk/FileSystemFormats/FAT16_FileSystem.html - the FAT16 file system specifications
  * http://wiki.osdev.org/Main_Page - a lot of resources and short tutorials there...
+
+## Hard drive overview
+
+The used file system is FAT16 with 512 bytes per sector.
+
+The file system contains the following components (in order):
+ * the boot sector (sector 0),
+(reserved sectors from sector 1 to sector 3)
+ * the first File Allocation Table (sector 4 to sector 23)
+ * the second File Allocation Table (sector 24 to sector 43)
+ * the root directory (sector 44 to 79)
+ * the data area (from sector 80)
+
+```
+
+    +----------------+ 0x0000
+    |                |
+    |   Boot sector  |
+    |                |
+    +----------------+ 0x01FF - 0x0200
+    |                |
+    |Reserved sectors|
+    |                |
+    +----------------+ 0x07FF - 0x0800
+    |                |
+    |                |
+    |   First FAT    |
+    |                |
+    |                |
+    +----------------+ 0x2FFF - 0x3000
+    |                |
+    |                |
+    |   Second FAT   |
+    |                |
+    |                |
+    +----------------+ 0x57FF - 0x5800
+    |                |
+    |                |
+    | Root directory |
+    |                |
+    |                |
+    +----------------+ 0x9FFF - OxA000
+    |                |
+    |                |
+    |                |
+    |     Data       |
+    |                |
+    |                |
+    |                |
+    +----------------+ 0x9D8000
+
+```
 
 # Starting steps
 
