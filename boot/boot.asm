@@ -15,7 +15,7 @@ bits 16
 ; this instruction is used to jump to the bootsector block, this is required
 ; to write this instruction here (3 bytes from offset 0 to 2 included) according
 ; to FAT16 specifications
-jmp reset_floppy
+jmp reset_hd
 
 ; ----------------------------------------------------------------------------
 ; BIOS Parameter block for FAT16 file system, has to start at the byte 0x3
@@ -38,11 +38,11 @@ dw 65535          ; small number of sectors in the volume
                   ; NOTE: for my tests purposes, this amount is simply set
                   ; with an arbitrary value
 db 0xf0           ; media descriptor, the value must be 0xf0 for 1.44 Mb
-                  ; floppy disks
+                  ; hd disks
 dw 9              ; amount of sectors per FAT, we have 2 FATs of 9 sectors
 dw 18             ; sectors per track, used for LBA/CHS conversion, the 
-                  ; floppy disk contains 18 sectors per track
-dw 2              ; number of heads (2 heads on a standard floppy disk)
+                  ; hd disk contains 18 sectors per track
+dw 2              ; number of heads (2 heads on a standard hd disk)
 dd 0              ; hidden sectors, the amount of sectors between the first
                   ; sector of the disk and the beginning of the volume
 dd 0              ; large number of sector, unused in our case as we use
@@ -56,7 +56,7 @@ dd 0xffff         ; serial number, we set the 32 bits to 1, related to the
 ; Extended BIOS Parameter Block
 ; ----------------------------------------------------------------------------
 
-db 0              ; drive number, 0 for floppy disk
+db 0              ; drive number, 0 for hd disk
 db 0              ; reserved and unused byte
 db "NO NAME", 0, 0, 0, 0    ; 11 bytes long volume label string
                   ; TODO: #7 must be equal to NO NAME if the root directory
@@ -77,25 +77,25 @@ bootloader:
 
 xor cl,cl ;set cl to 0
 
-; directly jump to the instructions that reset the floppy disk
-jmp reset_floppy
+; directly jump to the instructions that reset the hd disk
+jmp reset_hd
 
 ; ----------------------------------------------------------------------------
 ; basic data of the bootsector (this way to do is special, should be in the
 ; data sector normally, but this concept does not exist at this moment... :(
 ; ----------------------------------------------------------------------------
 
-flp_error_msg db "Floppy disk error", 0
+hd_error_msg db "Hard disk error", 0
 
 ; ----------------------------------------------------------------------------
-; executed when the floppy has an error (read/write), displays an error
+; executed when the hd has an error (read/write), displays an error
 ; message and halt the system
 ; ----------------------------------------------------------------------------
 
-floppy_error:
+hd_error:
     xor bx, bx ;set bx to 0
     mov ds, bx ;data segment is equal to 0
-    mov si, flp_error_msg ;si is equal to the address where the message starts
+    mov si, hd_error_msg ;si is equal to the address where the message starts
 
     loop:
         lodsb ;load ds:si in al, and increment si (store one letter in al and
@@ -107,19 +107,19 @@ floppy_error:
         jmp loop ;jump to the beginning of the loop
 
 ; ----------------------------------------------------------------------------
-; reset the floppy disk (force the floppy controller to get ready on the
+; reset the hd disk (force the hd controller to get ready on the
 ; first sector of the disk)
 ; ----------------------------------------------------------------------------
 
-reset_floppy:
+reset_hd:
     cmp cl, 3 ;try three attemps only, jump to display an error message if
               ;the function fails more 3 times
-    je floppy_error
+    je hd_error
     mov ah, 0 ;init disks function is 0
     mov dl, 0x80 ;first hard disk is 80, second one is 81
     int 0x13 ;disk access interrupt, reset the disk
     inc cl    ;increment the attempts amount
-    jb reset_floppy ;jump back to the address of the beginning of the action
+    jb reset_hd ;jump back to the address of the beginning of the action
                      ;if an error occured (cf=1, carry flag)
 
 ; ----------------------------------------------------------------------------
