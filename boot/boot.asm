@@ -26,9 +26,9 @@ dw 512            ;2 bytes, bytes per sector, each one is 512 bytes long
 db 1              ; 1 byte, sectors per cluster, it is possible to group
                   ; the sectors by 'cluster', here, we only have one
                   ; sector per cluster
-dw 1              ; 2 bytes, reserved sectors, used to calculate the starting
-                  ; sector of the first FAT; the boot sector is the only
-                  ; sector before the FAT, so the value is 1
+dw 4              ; 2 bytes, reserved sectors, used to calculate the starting
+                  ; sector of the first FAT; the boot sector and three extra
+                  ; useless sectors in the 10 mb disk
 db 2              ; 1 byte, numer of file allocation tables, the prefered
                   ; amout is 2 for backup
 dw 512            ; 2 bytes, number of root directory entries (file or
@@ -37,12 +37,11 @@ dw 512            ; 2 bytes, number of root directory entries (file or
 dw 65535          ; small number of sectors in the volume
                   ; NOTE: for my tests purposes, this amount is simply set
                   ; with an arbitrary value
-db 0xf0           ; media descriptor, the value must be 0xf0 for 1.44 Mb
-                  ; hd disks
-dw 9              ; amount of sectors per FAT, we have 2 FATs of 9 sectors
-dw 18             ; sectors per track, used for LBA/CHS conversion, the 
-                  ; hd disk contains 18 sectors per track
-dw 2              ; number of heads (2 heads on a standard hd disk)
+db 0xf8           ; media descriptor, the value must be 0xf8 for unknown capacity
+dw 20             ; amount of sectors per FAT, we have 2 FATs of 20 sectors
+dw 63             ; sectors per track, used for LBA/CHS conversion, the
+                  ; hd disk contains 63 sectors per track
+dw 16             ; number of heads (16 heads on a standard hd disk)
 dd 0              ; hidden sectors, the amount of sectors between the first
                   ; sector of the disk and the beginning of the volume
 dd 0              ; large number of sector, unused in our case as we use
