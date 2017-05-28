@@ -16,7 +16,7 @@ a CHS geometry of 20/16/63.
 Bochs and Nasm are required to install and run PititOS.
 
 ```
-apt-get install bochs nasm
+apt-get install bochs nasm dosfstools 
 ```
 
 ## Make and run
