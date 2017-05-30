@@ -128,10 +128,43 @@ is 0xFFFFF, which means 1 048 575 (1 Mbyte)
 ```
 
 The boot sector :
- * reset the floppy disk drive,
- * display an error if the drive cannot be reset,
- * load the FAT16 root directory,
- * load one FAT in memory (first one),
- * look for STAGE2.BIN,
- * display an error message if the file is not found,
- * load the file and execute it directly
+ * resets the floppy disk drive,
+ * displays an error if the drive cannot be reset,
+ * loads the stage2 binary file directly from its sector and executes it
+
+TODO:
+ * the boot sector should load the root directory and the FAT
+in order to load stage2. This may be a problem if stage2 is moved somewhere on the disk.
+
+## 2. Stage2
+
+The first program file executed by the boot sector. Can be longer than one disk sector.
+It is loaded by the boot sector in 0x7E00, right after the boot sector.
+
+```
+         +----------------------+0x0000
+         |                      |
+         |         BIOS         |
+         |                      |
+         +----------------------+0x04FF - 0x0500
+         |                      |
+         |        Free          |
+         |                      |
+         +----------------------+0x7BFF - 0x7C00
+         |       boot.bin       |
+         +----------------------+0x7DFF - 0x7E00
+         |       stage2.bin     |
+         +----------------------+0x7FFF - 0x8000
+         |                      |
+         |                      |
+         |                      |
+         |         Free         |
+         |                      |
+         |                      |
+         |                      |
+         +----------------------+0x9FFFF - OxA0000
+         |         Used         |
+         |                      |
+         +----------------------+0xFFFFF
+
+```
