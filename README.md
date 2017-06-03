@@ -105,7 +105,8 @@ by the BIOS at 0x07c0:0x0000 (physical address 0x7c00).
          |         BIOS         |
          |                      |
          +----------------------+0x04FF - 0x0500
-         |                      |
+         |        stack         |
+         +----------------------+0x09FF - 0x0A00
          |        Free          |
          |                      |
          +----------------------+0x7BFF - 0x7C00
@@ -128,6 +129,7 @@ is 0xFFFFF, which means 1 048 575 (1 Mbyte)
 ```
 
 The boot sector :
+ * loads the stack from 0x0500 and 0x0A00 (500 bytes),
  * resets the floppy disk drive,
  * displays an error if the drive cannot be reset,
  * loads the stage2 binary file directly from its sector and executes it
