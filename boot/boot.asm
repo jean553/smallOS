@@ -82,7 +82,13 @@ bootloader:
 
     ; the data segment is the same as the code
     mov bx, 0x07C0
-    mov ds,bx
+    mov ds, bx
+
+    ; set the stack location at 0x0500
+    ; starts at 0x00A00 and finishes at 0x00500
+    mov ax, 0x0050
+    mov ss, ax
+    mov sp, 0x0500
 
     xor cl,cl ;set cl to 0
 
