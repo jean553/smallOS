@@ -105,8 +105,16 @@ gdt_end:
 
 end:
 
+    ; it is mandatory to clear every BIOS interrupt before loading GDT
+    cli
+
     ; load the GDT into GDTR register
     lgdt [gdt_end]
 
-cli
-hlt
+    ; switch into protected mode (32 bits)
+    mov eax, cr0
+    or eax, 1       ; only update the first bit of cr0 to 1 to switch to pmode
+    mov cr0, eax
+
+    ; halt the system
+    hlt
