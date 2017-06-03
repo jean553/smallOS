@@ -69,6 +69,12 @@ db "FAT16", 0, 0, 0 ; 8 bytes long file system name
 times 0x3e - ($-$$) db 0
 
 ; ----------------------------------------------------------------------------
+; Inclusions
+; ----------------------------------------------------------------------------
+
+%include 'io.inc'   ; IO routines
+
+; ----------------------------------------------------------------------------
 ; here starts the code part of the booloader (byte 0x3e)
 ; ----------------------------------------------------------------------------
 
@@ -105,14 +111,8 @@ hd_error:
     mov ds, bx ;data segment is equal to 0
     mov si, hd_error_msg ;si is equal to the address where the message starts
 
-    loop:
-        lodsb ;load ds:si in al, and increment si (store one letter in al and
-              ;jump to the next one
-        or al,al ;is al = 0 ? (end of the string)
-        jz end ;if al = 0, jump to the end of the sector
-        mov ah, 0x0e ;the function to write one character is 0x0e
-        int 0x10 ;the video interrupt
-        jmp loop ;jump to the beginning of the loop
+    call print
+    jmp end
 
 ; ----------------------------------------------------------------------------
 ; reset the hd disk (force the hd controller to get ready on the
