@@ -116,5 +116,16 @@ end:
     or eax, 1       ; only update the first bit of cr0 to 1 to switch to pmode
     mov cr0, eax
 
+    ; enable A20 to access up to 32 address bus lines
+    ; modify the port 0x92
+    ; bit 0: fast reset (1: reset, 0: nothing), goes back to real mode
+    ; bit 1: enable A20 (0: disable, 1: enable)
+    ; bit 2: nothing
+    ; bit 3: passwords management for CMOS (0 by default)
+    ; bits 4-5: nothing
+    ; bits 6-7: turn on HD activity led (00: on, other: off)
+    mov al, 00000010b
+    out 0x92, al
+
     ; halt the system
     hlt
