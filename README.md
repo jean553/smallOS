@@ -168,3 +168,22 @@ It is loaded by the boot sector in 0x7E00, right after the boot sector.
          +----------------------+0xFFFFF
 
 ```
+
+Stage2:
+ * loads the global descriptor table (GDT)
+ * switches to protected mode (32 bits)
+ * enables A20 to access up to 32 lines address bus
+
+### Global Descriptor Table overview
+
+The GDT is part of the Stage2 program. It defines what parts of the memory can be executed,
+and what parts of the memory can store data.
+
+Each descriptor is 64 bits long. Our GDT contains three descriptors:
+ * the null descriptor (64 bits equal to 0, required),
+ * the code descriptor (describes what parts of the memory can be executed),
+ * the data descriptor (describes what parts of the memory can store data)
+
+According to our current GDT, the whole memory can be executed
+and the whole memory can be used to store data
+(from address 0x0 to 0xFFFFFFFF, 4Gbytes).
