@@ -26,12 +26,26 @@ print:
 ;-----------------------------------------------------------------------------
 
 load_root:
+
+    ; the root directory is loaded at 0x0A000 (0x0A00:0x0000)
+    mov bx, 0x0A00
+    mov es, bx
+    xor bx, bx
+
+    ; the starting LBA sector of the root directory is 0x5800
+    mov ax, 0x5800
+
+    ; the root directory is 36 sectors long
+    mov cx, 36
+
+    call read_sectors
+
     jmp routine_end
 
 ;-----------------------------------------------------------------------------
 ; Reads sector(s) on the disk and loads it in memory at the expected location
 ;-----------------------------------------------------------------------------
-; AX: sector to read
+; AX: LBA sector to read
 ; CX: number of sector(s) to read
 ; ES:BX: memory location where sectors are written
 ;-----------------------------------------------------------------------------
