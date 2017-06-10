@@ -69,6 +69,12 @@ db "FAT16", 0, 0, 0 ; 8 bytes long file system name
 times 0x3e - ($-$$) db 0
 
 ; ----------------------------------------------------------------------------
+; Other variables
+; ----------------------------------------------------------------------------
+
+stage2 db "STAGE2  BIN"
+
+; ----------------------------------------------------------------------------
 ; Inclusions
 ; ----------------------------------------------------------------------------
 
@@ -114,8 +120,7 @@ hd_error_msg db "Hard disk error", 0
 ; ----------------------------------------------------------------------------
 
 hd_error:
-    xor bx, bx ;set bx to 0
-    mov ds, bx ;data segment is equal to 0
+
     mov si, hd_error_msg ;si is equal to the address where the message starts
 
     call print
@@ -149,6 +154,32 @@ load_stage2:
 
     ; load one FAT in memory
     call load_fat
+
+    ; set ES:DI to the root directory location (0x0A00:0x0000)
+    mov bx, 0x0A00
+    mov es, bx
+    mov di, 0
+
+    ; there are 576 entries into the root directory
+    ; every one is iterated
+    mov cx, 572
+
+    search_stage2:
+
+        mov si, stage2          ; put back si to the origin address
+        push cx                 ; cx is modified for ret cmpsb
+        mov cx, 11              ; there are 11 characters to compare
+        push di
+        rep cmpsb               ; compare 11 characters between ES:DI and DS:SI
+        je load_stage2_sectors  ; entry has been found
+        pop di
+        add di, 32              ; if not found, check 11 characters 32 bytes after
+        pop cx                  ; get back cx for loop
+        loop search_stage2      ; iterate
+
+    jmp hd_error                ; not found, indicate an HD error
+
+load_stage2_sectors:
 
     ; stage2.sys is loaded right after the bootsector (0x7E00) (0x07C0:0x0200)
     mov bx, 0x07C0
