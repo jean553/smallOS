@@ -119,6 +119,16 @@ by the BIOS at 0x07c0:0x0000 (physical address 0x7c00).
          |                      |
          |                      |
          |                      |
+         +----------------------+0x9FFF - 0xA000
+         |                      |
+         |    Root directory    |
+         |                      |
+         +----------------------+0xE7FF - 0xE800
+         |                      |
+         |                      |
+         |         Free         |
+         |                      |
+         |                      |
          +----------------------+0x9FFFF - OxA0000
          |         Used         |
          |                      |
