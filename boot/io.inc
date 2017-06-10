@@ -20,6 +20,15 @@ print:
     jmp print          ;jump to the beginning of the loop
 
 ;-----------------------------------------------------------------------------
+; Loads the FAT16 root directory from the hard disk to 0x0A000 - 0x0E800
+; The root directory is 18 432 bytes long, all bytes are loaded
+; The location of the root directory on the disk is byte 0x5800 to 0xA000
+;-----------------------------------------------------------------------------
+
+load_root:
+    jmp routine_end
+
+;-----------------------------------------------------------------------------
 ; Terminates the current executed routine
 ;-----------------------------------------------------------------------------
 routine_end:
