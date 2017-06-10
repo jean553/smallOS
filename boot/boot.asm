@@ -147,6 +147,9 @@ load_stage2:
     ; load FAT16 root directory
     call load_root
 
+    ; load one FAT in memory
+    call load_fat
+
     ; stage2.sys is loaded right after the bootsector (0x7E00) (0x07C0:0x0200)
     mov bx, 0x07C0
     mov es, bx
