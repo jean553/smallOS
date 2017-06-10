@@ -32,8 +32,9 @@ load_root:
     mov es, bx
     xor bx, bx
 
-    ; the starting LBA sector of the root directory is 0x5800
-    mov ax, 0x5800
+    ; the starting LBA sector of the root directory is sector 44
+    ; byte 0x5800 / 512 = 44
+    mov ax, 44
 
     ; the root directory is 36 sectors long
     mov cx, 36
@@ -51,6 +52,42 @@ load_root:
 ;-----------------------------------------------------------------------------
 
 read_sectors:
+
+    ; all those registers are modified during the CHS calculation,
+    ; and we still except their original values at the end of the process
+    push ax
+    push cx
+    push bx
+    push cx
+
+    ; calculate the absolute sector
+    ; sector = (logical sector % sectors per track) + 1
+    xor dx, dx
+    mov cx, 63
+    div cx
+    inc dx          ; dx = sector, ax = (lba sector / sectors per track)
+    mov bx, dx
+
+    ; calculate the absolute head and absolute track
+    ; head = (logical sector / sectors per track) % number of heads = ax % number of heads
+    xor dx, dx
+    mov cx, 16
+    div cx          ; bx = sector, ax = track, dx = head
+
+    ; set registers for the BIOS interrupt
+    mov ch, al
+    mov cl, bl
+    mov dh, dl
+    mov dl, 0x80
+    pop ax
+    mov ah, 0x02
+    pop bx
+
+    int 0x13
+
+    pop cx
+    pop ax
+
     ret
 
 ;-----------------------------------------------------------------------------
