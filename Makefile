@@ -17,7 +17,7 @@ mount: force_look
 	sudo mount -t vfat /dev/loop0 /mnt/
 
 copy: force_look
-	sudo cp boot/stage2.bin /mnt/stage2.bin
+	sudo cp boot/stage2.bin /mnt/STAGE2.BIN
 
 boot_copy: force_look
 	dd if=boot/boot.bin of=hd.img count=1 conv=notrunc
