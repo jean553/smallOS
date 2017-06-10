@@ -5,7 +5,7 @@
 ; BIOS loads the boot sector at the address 0x7c00 in memory; this is a NASM
 ; directive indicating that all the variables we use in the program will get
 ; this additional offset
-org 0x7c00
+org 0x0
 
 ; NASM directive indicating how the code should be generated; the bootloader
 ; is the one of the first program executed by the machine; at this moment, the
@@ -15,7 +15,7 @@ bits 16
 ; this instruction is used to jump to the bootsector block, this is required
 ; to write this instruction here (3 bytes from offset 0 to 2 included) according
 ; to FAT16 specifications
-jmp reset_hd
+jmp bootloader
 
 ; ----------------------------------------------------------------------------
 ; BIOS Parameter block for FAT16 file system, has to start at the byte 0x3
@@ -83,6 +83,7 @@ bootloader:
     ; the data segment is the same as the code
     mov bx, 0x07C0
     mov ds, bx
+    xor bx, bx
 
     ; set the stack location at 0x0500
     ; starts at 0x00A00 and finishes at 0x00500
