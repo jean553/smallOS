@@ -125,6 +125,9 @@ by the BIOS at 0x07c0:0x0000 (physical address 0x7c00).
          |                      |
          +----------------------+0xE7FF - 0xE800
          |                      |
+         |         FAT          |
+         |                      |
+         +----------------------+0x10FFF - 0x11000
          |                      |
          |         Free         |
          |                      |
@@ -142,6 +145,8 @@ The boot sector :
  * loads the stack from 0x0500 and 0x0A00 (500 bytes),
  * resets the floppy disk drive,
  * displays an error if the drive cannot be reset,
+ * loads the root directory,
+ * loads one File Allocation Table,
  * loads the stage2 binary file directly from its sector and executes it
 
 TODO:

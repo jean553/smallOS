@@ -44,6 +44,27 @@ load_root:
     jmp routine_end
 
 ;-----------------------------------------------------------------------------
+; Loads the FAT16 first FAT from the hard disk to 0x0E800
+;-----------------------------------------------------------------------------
+
+load_fat:
+
+    ; the FAT is loaded at 0x0E800, right after the root directory (0x0E80:0x0000)
+    mov bx, 0x0E80
+    mov es, bx
+    xor bx, bx
+
+    ; the starting LBA sector of the FAT is sector 4
+    mov ax, 4
+
+    ; the FAT is 17 sectors long
+    mov cx, 17
+
+    call read_sectors
+
+    jmp routine_end
+
+;-----------------------------------------------------------------------------
 ; Reads sector(s) on the disk and loads it in memory at the expected location
 ;-----------------------------------------------------------------------------
 ; AX: LBA sector to read
