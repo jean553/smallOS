@@ -29,6 +29,17 @@ load_root:
     jmp routine_end
 
 ;-----------------------------------------------------------------------------
+; Reads sector(s) on the disk and loads it in memory at the expected location
+;-----------------------------------------------------------------------------
+; AX: sector to read
+; CX: number of sector(s) to read
+; ES:BX: memory location where sectors are written
+;-----------------------------------------------------------------------------
+
+read_sectors:
+    ret
+
+;-----------------------------------------------------------------------------
 ; Terminates the current executed routine
 ;-----------------------------------------------------------------------------
 routine_end:
