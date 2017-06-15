@@ -177,6 +177,10 @@ load_file:
 
         ; load the whole file in memory
 
+        sub ax, 3   ; remove the three initial FAT entries
+                    ; TODO: it should be 2 and not 3
+        add ax, 80  ; the first data sector is at sector 80 on disk
+
     ret
 
 ;-----------------------------------------------------------------------------
