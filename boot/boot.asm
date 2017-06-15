@@ -186,10 +186,6 @@ load_stage2_sectors:
     mov es, bx
     mov bx, 0x0200
 
-    ; TODO: #19 we do not implement functions that deduce CHS values themselves;
-    ; in fact, we know the disk geometry, and we know exactly where stage2
-    ; is located on the disk. We should use FAT16 functions here.
-
     ; stage2 is the first file of the system, it takes one sector exactly
     ; and it uses the first sector of the data area;
     ; LBA to CHS conversion:
