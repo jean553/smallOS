@@ -112,7 +112,9 @@ read_sectors:
     ret
 
 ;-----------------------------------------------------------------------------
-; load a given file into memory
+; load a given file into memory, the name of the file to search from the root
+; directory is located at DS:SI, the location where the file has to be written
+; into the memory is ES:DI.
 ;-----------------------------------------------------------------------------
 ; DS: data segment of the file name to find
 ; SI: the address of the string of the file name to find (DS:SI)
@@ -122,6 +124,33 @@ read_sectors:
 
 load_file:
 
+    ; we iterate over the 576 root directory entries
+    mov cx, 576
+
+    push si
+
+    search_file:
+
+        pop si
+        push si
+
+        push cx                 ; cx is modified for ret cmpsb
+        mov cx, 11              ; there are 11 characters to compare
+        push di
+        rep cmpsb               ; compare 11 characters between ES:DI and DS:SI
+        je found_file           ; entry has been found
+        pop di
+        add di, 32              ; if not found, check 11 characters 32 bytes after
+        pop cx                  ; get back cx for loop
+        loop search_file        ; iterate
+
+    pop si
+    jmp hd_error                ; not found, indicate an HD error
+
+    found_file:
+    pop di
+    pop cx
+    pop si
     ret
 
 ;-----------------------------------------------------------------------------
