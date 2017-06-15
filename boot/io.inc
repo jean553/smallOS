@@ -177,45 +177,65 @@ load_file:
 
         ; load the whole file in memory
 
-        sub dx, 3   ; remove the three initial FAT entries
-                    ; TODO: it should be 2 and not 3
-        add dx, 80  ; the first data sector is at sector 80 on disk
-        mov ax, dx
+        continue_load_file:
 
-        push ax
-        push bx
-        push cx
-        push dx
+            mov cx, dx  ; save the initial FAT entry
+            sub dx, 3   ; remove the three initial FAT entries
+                        ; TODO: it should be 2 and not 3
+            add dx, 80  ; the first data sector is at sector 80 on disk
+            mov ax, dx
 
-        ; absolute sector = (sector % sectors per track) + 1
-        xor dx, dx
-        mov cx, 63
-        div cx
-        inc dl
-        mov cl, dl
+            push ax
+            push bx
+            push cx
+            push dx
 
-        ; absolute head = (sector / sectors per track) % number of heads
-        push cx
-        xor dx, dx
-        mov cx, 16
-        div cx
-        pop cx
-        mov dh, dl
+            ; absolute sector = (sector % sectors per track) + 1
+            xor dx, dx
+            mov cx, 63
+            div cx
+            inc dl
+            mov cl, dl
 
-        ; absolute track = logical sector / (sectors per track * number of heads)
-        mov ch, al
+            ; absolute head = (sector / sectors per track) % number of heads
+            push cx
+            xor dx, dx
+            mov cx, 16
+            div cx
+            pop cx
+            mov dh, dl
 
-        ; read the sector
-        mov dl, 0x80    ; read the first hard drive, so 0x80
-        mov ah, 0x02    ; the function 0x02 to read a sector
-        mov al, 1       ; read one sector exactly
-        int 0x13        ; bios interrupt for hard drive
-        jb reset_hd     ; display an error message in case of error
+            ; absolute track = logical sector / (sectors per track * number of heads)
+            mov ch, al
 
-        pop dx
-        pop cx
-        pop bx
-        pop ax
+            ; read the sector
+            mov dl, 0x80    ; read the first hard drive, so 0x80
+            mov ah, 0x02    ; the function 0x02 to read a sector
+            mov al, 1       ; read one sector exactly
+            int 0x13        ; bios interrupt for hard drive
+            jb reset_hd     ; display an error message in case of error
+
+            pop dx
+            pop cx
+            pop bx
+            pop ax
+
+            push ds
+            push bx
+            mov bx, 0x0E80
+            mov ds, bx
+            mov bx, cx
+
+            ; TODO: I don't know exactly why I have to substract one here
+            cmp dword [bx - 1], 0xFFFF
+
+            pop bx
+            pop ds
+
+            je end_load_file
+            jmp continue_load_file
+
+    end_load_file:
 
     ret
 
