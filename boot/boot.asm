@@ -155,13 +155,13 @@ load_stage2:
     ; load one FAT in memory
     call load_fat
 
-    mov si, stage2
-    call load_file
-
     ; stage2.sys is loaded right after the bootsector (0x7E00) (0x07C0:0x0200)
     mov bx, 0x07C0
     mov es, bx
     mov bx, 0x0200
+
+    mov si, stage2
+    call load_file
 
     ; stage2 is the first file of the system, it takes one sector exactly
     ; and it uses the first sector of the data area;
