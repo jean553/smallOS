@@ -155,11 +155,6 @@ load_stage2:
     ; load one FAT in memory
     call load_fat
 
-    ; set ES:DI to the root directory location (0x0A00:0x0000)
-    mov bx, 0x0A00
-    mov es, bx
-    mov di, 0
-
     mov si, stage2
     call load_file
 
