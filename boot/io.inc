@@ -181,7 +181,7 @@ load_file:
 
             mov cx, dx  ; save the initial FAT entry
             sub dx, 3   ; remove the three initial FAT entries
-                        ; TODO: it should be 2 and not 3
+                        ; TODO: #33 it should be 2 and not 3
             add dx, 80  ; the first data sector is at sector 80 on disk
             mov ax, dx
 
@@ -226,7 +226,7 @@ load_file:
             mov ds, bx
             mov bx, cx
 
-            ; TODO: I don't know exactly why I have to substract one here
+            ; TODO: #33 I don't know exactly why I have to substract one here
             cmp dword [bx - 1], 0xFFFF
 
             pop bx
