@@ -155,31 +155,13 @@ load_stage2:
     ; load one FAT in memory
     call load_fat
 
-    mov si, stage2
-    call load_file
-
     ; stage2.sys is loaded right after the bootsector (0x7E00) (0x07C0:0x0200)
     mov bx, 0x07C0
     mov es, bx
     mov bx, 0x0200
 
-    ; stage2 is the first file of the system, it takes one sector exactly
-    ; and it uses the first sector of the data area;
-    ; LBA to CHS conversion:
-    ; sector = (logical sector % sectors per track) + 1
-    ; head = (logical sector / sectors per track) % number of heads
-    ; track = logical sector / (sectors per track * number of heads)
-    mov cl, 18 ; (80 % 63) + 1 = 18
-    mov dh, 1  ; (80 / 63) / 16 = 1
-    mov ch, 0  ; 80 / (63 * 16) = 0
-
-    mov dl, 0x80 ; read the first hard drive, so 0x80
-
-    ; read the sector
-    mov ah, 0x02    ; the function 0x02 to read a sector
-    mov al, 1       ; read one sector exactly
-    int 0x13        ; bios interrupt for hard drive
-    jb reset_hd     ; display an error message in case of error
+    mov si, stage2
+    call load_file
 
     ; directly jump to stage2
     jmp 0x07C0:0x0200
