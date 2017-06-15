@@ -112,6 +112,19 @@ read_sectors:
     ret
 
 ;-----------------------------------------------------------------------------
+; load a given file into memory
+;-----------------------------------------------------------------------------
+; DS: data segment of the file name to find
+; SI: the address of the string of the file name to find (DS:SI)
+; ES: the segment where the file is loaded into memory
+; DI: the offset where the file is loaded into memory (ES:DI)
+;-----------------------------------------------------------------------------
+
+load_file:
+
+    ret
+
+;-----------------------------------------------------------------------------
 ; Terminates the current executed routine
 ;-----------------------------------------------------------------------------
 routine_end:
