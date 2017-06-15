@@ -160,6 +160,8 @@ load_stage2:
     mov es, bx
     mov di, 0
 
+    call load_file
+
     ; there are 576 entries into the root directory
     ; every one is iterated
     mov cx, 572
