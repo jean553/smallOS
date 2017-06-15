@@ -118,11 +118,18 @@ read_sectors:
 ;-----------------------------------------------------------------------------
 ; DS: data segment of the file name to find
 ; SI: the address of the string of the file name to find (DS:SI)
-; ES: the segment where the file is loaded into memory
-; DI: the offset where the file is loaded into memory (ES:DI)
 ;-----------------------------------------------------------------------------
 
 load_file:
+
+    push bx
+    push es
+    push di
+
+    ; set ES:DI to the root directory location (0x0A00:0x0000)
+    mov bx, 0x0A00
+    mov es, bx
+    mov di, 0
 
     ; we iterate over the 576 root directory entries
     mov cx, 576
@@ -145,12 +152,21 @@ load_file:
         loop search_file        ; iterate
 
     pop si
+    pop di
+    pop es
+    pop bx
+
     jmp hd_error                ; not found, indicate an HD error
 
     found_file:
+
     pop di
     pop cx
     pop si
+    pop di
+    pop es
+    pop bx
+
     ret
 
 ;-----------------------------------------------------------------------------
