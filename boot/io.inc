@@ -160,12 +160,22 @@ load_file:
 
     found_file:
 
-    pop di
-    pop cx
-    pop si
-    pop di
-    pop es
-    pop bx
+        pop di
+
+        ; find the first cluster (=first sector) of the file
+        push ds
+        mov bx, 0x0A00
+        mov ds, bx
+        mov dx, word [di + 26]      ; the first cluster is at byte 26 in root directory entry
+        pop ds
+
+        pop cx
+        pop si
+        pop di
+        pop es
+        pop bx
+
+        ; load the whole file in memory
 
     ret
 
