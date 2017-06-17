@@ -2,6 +2,7 @@
 ; Input/Output basic routines
 ;-----------------------------------------------------------------------------
 
+hd_error_msg db "Hard disk error", 0
 
 ;-----------------------------------------------------------------------------
 ; Displays every character from the given address, until 0 is found
@@ -18,6 +19,19 @@ print:
     mov ah, 0x0e       ;the function to write one character is 0x0e
     int 0x10           ;the video interrupt
     jmp print          ;jump to the beginning of the loop
+
+;-----------------------------------------------------------------------------
+; Shows a hard drive error and halt the whole system
+; (the system is directly halted inside this function as it has to be halted
+; anyway in case of hard drive error)
+;-----------------------------------------------------------------------------
+
+hd_error:
+
+    mov si, hd_error_msg ;si is equal to the address where the message starts
+    call print
+    hlt
+
 
 ;-----------------------------------------------------------------------------
 ; Loads the FAT16 root directory from the hard disk to 0x0A000 - 0x0E800
@@ -213,7 +227,7 @@ load_file:
             mov ah, 0x02    ; the function 0x02 to read a sector
             mov al, 1       ; read one sector exactly
             int 0x13        ; bios interrupt for hard drive
-            jb reset_hd     ; display an error message in case of error
+            jb hd_error     ; display an error message in case of error
 
             pop dx
             pop cx

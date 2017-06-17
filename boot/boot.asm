@@ -108,32 +108,13 @@ end_reset_hd:
     jmp load_stage2
 
 ; ----------------------------------------------------------------------------
-; basic data of the bootsector (this way to do is special, should be in the
-; data sector normally, but this concept does not exist at this moment... :(
-; ----------------------------------------------------------------------------
-
-hd_error_msg db "Hard disk error", 0
-
-; ----------------------------------------------------------------------------
-; executed when the hd has an error (read/write), displays an error
-; message and halt the system
-; ----------------------------------------------------------------------------
-
-hd_error:
-
-    mov si, hd_error_msg ;si is equal to the address where the message starts
-
-    call print
-    jmp end
-
-; ----------------------------------------------------------------------------
 ; reset the hd disk (force the hd controller to get ready on the
 ; first sector of the disk)
 ; ----------------------------------------------------------------------------
 
 reset_hd:
     cmp cl, 3 ;try three attemps only, jump to display an error message if
-              ;the function fails more 3 times
+              ;the function fails more than 3 times
     je hd_error
     mov ah, 0 ;init disks function is 0
     mov dl, 0x80 ;first hard disk is 80, second one is 81
