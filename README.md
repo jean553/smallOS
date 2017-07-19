@@ -1,6 +1,6 @@
 Taiga project: https://tree.taiga.io/project/jean553-jean553pititos/
 
-# pititOS
+# smallOS
 
 A very basic OS for self-learning purposes.
 
