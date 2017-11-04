@@ -1,5 +1,3 @@
-Taiga project: https://tree.taiga.io/project/jean553-jean553pititos/
-
 # smallOS
 
 A very basic OS for self-learning purposes.
@@ -10,7 +8,7 @@ A very basic OS for self-learning purposes.
 
 ## Installation
 
-Bochs and Nasm are required to install and run PititOS.
+Bochs and Nasm are required to install and run smallOS.
 
 ```
 apt-get install bochs nasm dosfstools
