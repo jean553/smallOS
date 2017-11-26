@@ -11,7 +11,7 @@ A very basic OS for self-learning purposes.
 - [Hard drive overview](#hard-drive-overview)
 - [Starting steps](#starting-steps)
     * [Bootsector](#bootsector)
-    * [Stage 2](#stage-2)
+    * [Stage2](#stage2)
     * [Global Descriptor Table](#global-descriptor-table)
 
 ## Tasks in progress
@@ -195,7 +195,7 @@ Stage2:
  * loads the global descriptor table (GDT)
  * switches to protected mode (32 bits)
 
-### Global Descriptor Table overview
+### Global Descriptor Table
 
 The GDT is part of the Stage2 program. It defines what parts of the memory can be executed,
 and what parts of the memory can store data.
