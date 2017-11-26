@@ -2,6 +2,18 @@
 
 A very basic OS for self-learning purposes.
 
+## Table of content
+
+- [Tasks in progress](#tasks-in-progress)
+- [Installation](#installation)
+- [Make and run](#make-and-run)
+- [References](#references)
+- [Hard drive overview](#hard-drive-overview)
+- [Starting steps](#starting-steps)
+    * [Bootsector](#bootsector)
+    * [Stage 2](#stage-2)
+    * [Global Descriptor Table](#global-descriptor-table)
+
 ## Tasks in progress
 
 * load GDT
@@ -88,9 +100,9 @@ The file system contains the following components:
 
 ```
 
-# Starting steps
+## Starting steps
 
-## 1. Bootsector
+### Bootsector
 
 The boot sector code is inside the file `boot/boot.asm`.
 This code is compiled into a 16 bits binary (real mode), as the machine has just started.
@@ -145,7 +157,7 @@ The boot sector :
  * loads one File Allocation Table,
  * loads the stage2 binary file directly from its sector and executes it
 
-## 2. Stage2
+### Stage2
 
 This is the first program file executed by the boot sector. Can be larger than one disk sector.
 It is loaded by the boot sector at 0x07E00, right after the boot sector.
