@@ -97,6 +97,14 @@ bootloader:
     mov es, bx
     mov di, bx
 
+    ; just after boot, the BIOS indicates in BL if the current disk
+    ; is a floppy disk (00h) or a fixed disk (80h). Of course, we only
+    ; allow smallOs to be booted from fixed hard disk,
+    ; an error message is print and the system is halted if the current disk
+    ; is not a fixed disk
+    cmp dl, 0x80
+    jne not_fixed_hd_error
+
     ; set the stack location at 0x0500
     ; starts at 0x00A00 and finishes at 0x00500
     mov ax, 0x0050
