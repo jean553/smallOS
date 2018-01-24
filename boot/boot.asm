@@ -91,6 +91,12 @@ bootloader:
     mov ds, bx
     xor bx, bx
 
+    ; ES:DI at boot contains the address to the Installation Check Structure
+    ; returned by the BIOS for Plug and Play; this is useless for us,
+    ; so we simply reset the registers values
+    mov es, bx
+    mov di, bx
+
     ; set the stack location at 0x0500
     ; starts at 0x00A00 and finishes at 0x00500
     mov ax, 0x0050
