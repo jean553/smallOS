@@ -3,6 +3,7 @@
 ;-----------------------------------------------------------------------------
 
 hd_error_msg db "Hard disk error", 0
+not_fixed_hd_error_msg db "Not fixed disk", 0
 
 ;-----------------------------------------------------------------------------
 ; Displays every character from the given address, until 0 is found
@@ -32,6 +33,16 @@ hd_error:
     call print
     hlt
 
+;-----------------------------------------------------------------------------
+; Shows an error message indicating the booted HD is not a fixed HD
+; (the system is halted by the function)
+;-----------------------------------------------------------------------------
+
+not_fixed_hd_error:
+
+    mov si, not_fixed_hd_error_msg
+    call print
+    hlt
 
 ;-----------------------------------------------------------------------------
 ; Loads the FAT16 root directory from the hard disk to 0x0A000 - 0x0E800
