@@ -78,7 +78,7 @@ stage2 db "STAGE2  BIN"
 ; Inclusions
 ; ----------------------------------------------------------------------------
 
-%include 'io.inc'   ; IO routines
+%include 'io.asm'   ; IO routines
 
 ; ----------------------------------------------------------------------------
 ; here starts the code part of the booloader (byte 0x3e)
