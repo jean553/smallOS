@@ -14,7 +14,7 @@ jmp end     ; skip the GDT data part
 ; Inclusions
 ; -----------------------------------------------------------------
 
-%include 'io.inc'   ; IO routines
+%include 'io.asm'   ; IO routines
 
 ; -----------------------------------------------------------------
 ; Global descriptor table
