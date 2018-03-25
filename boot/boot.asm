@@ -1,5 +1,5 @@
 ;-----------------------------------------------------------------------------
-; pitiOS bootsector
+; smallOS bootsector
 ;-----------------------------------------------------------------------------
 
 ; BIOS loads the boot sector at the address 0x7c00 in memory; this is a NASM
@@ -86,94 +86,110 @@ stage2 db "STAGE2  BIN"
 
 bootloader:
 
-    ; the data segment is the same as the code
+    ; the CS register contains the address of the code segment,
+    ; the DS register contains the address of the data segment;
+    ; the boot sector is a very basic program: they are equals
     mov bx, 0x07C0
     mov ds, bx
-    xor bx, bx
 
     ; ES:DI at boot contains the address to the Installation Check Structure
     ; returned by the BIOS for Plug and Play; this is useless for us,
     ; so we simply reset the registers values
+    xor bx, bx
     mov es, bx
     mov di, bx
 
     ; just after boot, the BIOS indicates in BL if the current disk
     ; is a floppy disk (00h) or a fixed disk (80h). Of course, we only
     ; allow smallOs to be booted from fixed hard disk,
-    ; an error message is print and the system is halted if the current disk
+    ; an error message is printed and the system is halted if the current disk
     ; is not a fixed disk
     cmp dl, 0x80
     jne not_fixed_hd_error
 
-    ; set the stack location at 0x0500
-    ; starts at 0x00A00 and finishes at 0x00500
+    ; starts the stack at 0x00A00 and finishes at 0x00500
+    ; (data is pushed from the highest address to the lowest one)
     mov ax, 0x0050
-    mov ss, ax
-    mov sp, 0x0500
+    mov ss, ax              ; the stack ends at 0x0500
+    mov sp, 0x0500          ; the stack begins at 0x0A00 (0x0500 + 0x0500)
 
-    xor cl,cl ;set cl to 0
-
-    ; directly jump to the instructions that reset the hd disk
+    ; directly jump to the instructions that resets the hard drive disk
+    ; before starting to load sectors from it
     jmp reset_hd
 
-end_reset_hd:
-
-    ; directly jump to the instructions that load the root directory in memory
-    jmp load_stage2
-
 ; ----------------------------------------------------------------------------
-; reset the hd disk (force the hd controller to get ready on the
-; first sector of the disk)
+; reset the hd disk (force the hd controller to get ready
+; at the first sector of the disk)
+;
+; if an error occurs, an error message is displayed and the system halts;
+; if the operation succeeds, the function that tries to load stage2 is called
 ; ----------------------------------------------------------------------------
 
 reset_hd:
-    cmp cl, 3 ;try three attemps only, jump to display an error message if
-              ;the function fails more than 3 times
-    je hd_error
-    mov ah, 0 ;init disks function is 0
-    mov dl, 0x80 ;first hard disk is 80, second one is 81
-    int 0x13 ;disk access interrupt, reset the disk
-    inc cl    ;increment the attempts amount
-    jb reset_hd ;jump back to the address of the beginning of the action
-                     ;if an error occured (cf=1, carry flag)
-    jmp end_reset_hd
+
+    ; the system tries three times maximum to reset the hard drive in case of failure,
+    ; that's why we declare a counter here that we reset to 0
+    xor cl, cl
+
+    loop_reset_hd:
+
+        ; try three attemps only, jump to display an error message if
+        ; the function fails more than 3 times
+        cmp cl, 3
+        je hd_error
+
+        ; initialize the first hard drive with the BIOS interrupts 
+        mov ah, 0            ; init disks function is 0
+        mov dl, 0x80         ; first hard disk is 80, second one is 81
+        int 0x13             ; disk access interrupt, reset the disk
+
+        inc cl               ; increment the attempts amount
+        jb loop_reset_hd     ; jump back to the address of the beginning of the action
+                             ; if an error occured (cf=1, carry flag)
+
+        ; if the hard drive is correctly reset,
+        ; then calls the function that loads stage2
+        jmp load_stage2
 
 ; ----------------------------------------------------------------------------
-; load the stage2 program, directly without carring about the file system
+; search, find and load stage2.sys from the hard drive to memory
+; (right after the boot sector, at 0x07E00)
 ; ----------------------------------------------------------------------------
 
 load_stage2:
 
-    ; load FAT16 root directory
+    ; FAT16 contains a root directory area on the disk that contains
+    ; information about all the stored files,
+    ; this root directory is integraly loaded in memory at this point
     call load_root
 
-    ; load one FAT in memory
+    ; FAT16 contains File Allocation Tables area on the disk
+    ; in order to know on which sectors are located each part
+    ; of a file on disk; one FAT is integraly loaded in memory at this point
     call load_fat
 
-    ; stage2.sys is loaded right after the bootsector (0x7E00) (0x07C0:0x0200)
+    ; stage2.sys will be loaded right after the bootsector (0x07E00) (0x07C0:0x0200),
+    ; prepare ES:BX to point on the memory area where stage2.sys will be loaded
     mov bx, 0x07C0
     mov es, bx
     mov bx, 0x0200
 
+    ; prepare DS:SI to point on the first character of the stored filename to load
+    ; (pointing on the string of the filename to load) for comparison with root
+    ; directory entries in order to find the stage2.sys file location on disk
     mov si, stage2
+
+    ; call the function that loads the file
+    ; (using the filename pointed by DS:SI and loading this file
+    ; in memory at ES:BX)
     call load_file
 
-    ; directly jump to stage2
+    ; jump where stage2.sys has been loaded for execution
     jmp 0x07C0:0x0200
 
 ; ----------------------------------------------------------------------------
 ; end of the bootloader execution
 ; ----------------------------------------------------------------------------
-
-end:
-
-; set the processor flaf IF to 0, disable the hardware interrupts, no
-; interrupts will be handled from the execution of this instruction
-cli
-
-; this instruction halts the execution until an interrupt; interrupts have
-; just been disabled, so it intentionnaly hangs the system here
-hlt
 
 ; the time instruction is used to copy the given byte ('db' for byte) x times
 ; (times x db byte). We use $ to find the address of the current instruction
