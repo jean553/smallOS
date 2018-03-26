@@ -2,6 +2,8 @@
 ; Input/Output basic routines
 ;-----------------------------------------------------------------------------
 
+file_not_found                  db "file not found", 0
+
 ; the location of the root directory on the disk is from 0x5800 to 0xA000
 
 ; the starting LBA sector of the root directory is sector 44 (byte 0x5800 / 512 = 44)
@@ -17,6 +19,31 @@ fat_starting_sector             dw 4
 
 ; the fat is 17 sectors long
 fat_sectors_amount              dw 17
+
+; used for har drive sectors LBA/CHS conversions
+
+; the disk has 63 sectors per track
+sectors_per_track               dw 63
+
+; the disk has 16 heads to read/write data
+heads_amount                    dw 16
+
+; there are 576 entries into the root directory
+; FIXME: #50 check why and fix it if necessary (usually 512 entries only)
+root_dir_entries                dw 576
+
+; the filename length (including extension) is 11 characters
+filename_length                 dw 11
+
+; the size of bytes into one directory entry is 32 bytes long
+root_dir_entry_size             dw 32
+
+; file first cluster into a root directory entry is at byte 26
+root_entry_file_first_cluster   dw 26
+
+; the first data sector on disk is the sector 80
+; (the first byte is at 0xA000, so 0xA000 / 512 = 80)
+first_data_sector               dw 80
 
 ;-----------------------------------------------------------------------------
 ; Displays every character from the given address, until 0 is found
@@ -93,7 +120,7 @@ load_fat:
 read_sectors:
 
     ; all those registers are modified during the CHS calculation,
-    ; and we still except their original values at the end of the process
+    ; and we still expect their original values at the end of the process
     push ax
     push cx
     push bx
@@ -102,7 +129,7 @@ read_sectors:
     ; calculate the absolute sector
     ; sector = (logical sector % sectors per track) + 1
     xor dx, dx
-    mov cx, 63
+    mov cx, word [sectors_per_track]
     div cx
     inc dx          ; dx = sector, ax = (lba sector / sectors per track)
     mov bx, dx
@@ -110,7 +137,7 @@ read_sectors:
     ; calculate the absolute head and absolute track
     ; head = (logical sector / sectors per track) % number of heads = ax % number of heads
     xor dx, dx
-    mov cx, 16
+    mov cx, word [heads_amount]
     div cx          ; bx = sector, ax = track, dx = head
 
     ; set registers for the BIOS interrupt
@@ -150,7 +177,7 @@ load_file:
     mov di, 0
 
     ; we iterate over the 576 root directory entries
-    mov cx, 576
+    mov cx, word [root_dir_entries]
 
     push si
 
@@ -160,12 +187,12 @@ load_file:
         push si
 
         push cx                 ; cx is modified for ret cmpsb
-        mov cx, 11              ; there are 11 characters to compare
+        mov cx, word [filename_length]
         push di
         rep cmpsb               ; compare 11 characters between ES:DI and DS:SI
         je found_file           ; entry has been found
         pop di
-        add di, 32              ; if not found, check 11 characters 32 bytes after
+        add di, word [root_dir_entry_size]
         pop cx                  ; get back cx for loop
         loop search_file        ; iterate
 
@@ -174,7 +201,9 @@ load_file:
     pop es
     pop bx
 
-    jmp hd_error                ; not found, indicate an HD error
+    mov si, file_not_found
+    call print
+    hlt
 
     found_file:
 
@@ -184,6 +213,8 @@ load_file:
         push ds
         mov bx, 0x0A00
         mov ds, bx
+
+        ; TODO: no idea why I cannot add a variable number to di...
         mov dx, word [di + 26]      ; the first cluster is at byte 26 in root directory entry
         pop ds
 
@@ -200,7 +231,7 @@ load_file:
             mov cx, dx  ; save the initial FAT entry
             sub dx, 3   ; remove the three initial FAT entries
                         ; TODO: #33 it should be 2 and not 3
-            add dx, 80  ; the first data sector is at sector 80 on disk
+            add dx, word [first_data_sector]  ; the first data sector is at sector 80 on disk
             mov ax, dx
 
             push ax
@@ -210,7 +241,7 @@ load_file:
 
             ; absolute sector = (sector % sectors per track) + 1
             xor dx, dx
-            mov cx, 63
+            mov cx, word [sectors_per_track]
             div cx
             inc dl
             mov cl, dl
@@ -218,7 +249,7 @@ load_file:
             ; absolute head = (sector / sectors per track) % number of heads
             push cx
             xor dx, dx
-            mov cx, 16
+            mov cx, word [heads_amount]
             div cx
             pop cx
             mov dh, dl
@@ -231,7 +262,14 @@ load_file:
             mov ah, 0x02    ; the function 0x02 to read a sector
             mov al, 1       ; read one sector exactly
             int 0x13        ; bios interrupt for hard drive
-            jb hd_error     ; display an error message in case of error
+
+            jnc continue_read_sector
+
+            mov si, file_not_found
+            call print
+            hlt
+
+            continue_read_sector:
 
             pop dx
             pop cx
