@@ -2,6 +2,14 @@
 ; Input/Output basic routines
 ;-----------------------------------------------------------------------------
 
+; the location of the root directory on the disk is from 0x5800 to 0xA000
+
+; the starting LBA sector of the root directory is sector 44 (byte 0x5800 / 512 = 44)
+root_dir_starting_sector        dw 44
+
+; the root directory is 36 sectors long (18 432 bytes long)
+root_dir_sectors_amount         dw 36
+
 ;-----------------------------------------------------------------------------
 ; Displays every character from the given address, until 0 is found
 ;-----------------------------------------------------------------------------
@@ -28,8 +36,6 @@ print:
 
 ;-----------------------------------------------------------------------------
 ; Loads the FAT16 root directory from the hard disk to 0x0A000 - 0x0E800
-; The root directory is 18 432 bytes long, all bytes are loaded
-; The location of the root directory on the disk is byte 0x5800 to 0xA000
 ;-----------------------------------------------------------------------------
 
 load_root:
@@ -39,15 +45,13 @@ load_root:
     mov es, bx
     xor bx, bx
 
-    ; the starting LBA sector of the root directory is sector 44
-    ; byte 0x5800 / 512 = 44
-    mov ax, 44
+    ; the first sector to read is the first root directory sector
+    mov ax, word [root_dir_starting_sector]
 
-    ; the root directory is 36 sectors long
-    mov cx, 36
+    ; the amount of sectors to read is the root directory sectors amount
+    mov cx, [root_dir_sectors_amount]
 
     call read_sectors
-
     ret
 
 ;-----------------------------------------------------------------------------
