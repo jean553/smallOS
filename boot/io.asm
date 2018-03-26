@@ -2,9 +2,6 @@
 ; Input/Output basic routines
 ;-----------------------------------------------------------------------------
 
-hd_error_msg db "Hard disk error", 0
-not_fixed_hd_error_msg db "Not fixed disk", 0
-
 ;-----------------------------------------------------------------------------
 ; Displays every character from the given address, until 0 is found
 ;-----------------------------------------------------------------------------
@@ -28,29 +25,6 @@ print:
 
     print_end:
         ret
-
-;-----------------------------------------------------------------------------
-; Shows a hard drive error and halt the whole system
-; (the system is directly halted inside this function as it has to be halted
-; anyway in case of hard drive error)
-;-----------------------------------------------------------------------------
-
-hd_error:
-
-    mov si, hd_error_msg ;si is equal to the address where the message starts
-    call print
-    hlt
-
-;-----------------------------------------------------------------------------
-; Shows an error message indicating the booted HD is not a fixed HD
-; (the system is halted by the function)
-;-----------------------------------------------------------------------------
-
-not_fixed_hd_error:
-
-    mov si, not_fixed_hd_error_msg
-    call print
-    hlt
 
 ;-----------------------------------------------------------------------------
 ; Loads the FAT16 root directory from the hard disk to 0x0A000 - 0x0E800
