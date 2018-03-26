@@ -72,7 +72,9 @@ times 0x3e - ($-$$) db 0
 ; Other variables
 ; ----------------------------------------------------------------------------
 
-stage2 db "STAGE2  BIN"
+stage2              db "STAGE2  BIN"
+hd_error_msg        db "Hard disk error", 0
+not_hd_error_msg    db "Not hard disk", 0
 
 ; ----------------------------------------------------------------------------
 ; Inclusions
@@ -100,12 +102,12 @@ bootloader:
     mov di, bx
 
     ; just after boot, the BIOS indicates in BL if the current disk
-    ; is a floppy disk (00h) or a fixed disk (80h). Of course, we only
-    ; allow smallOs to be booted from fixed hard disk,
+    ; is a floppy disk (00h) or a hard disk (80h). Of course, we only
+    ; allow smallOS to be booted from a hard disk,
     ; an error message is printed and the system is halted if the current disk
-    ; is not a fixed disk
+    ; is not a hard disk
     cmp dl, 0x80
-    jne not_fixed_hd_error
+    jne not_hd_error
 
     ; starts the stack at 0x00A00 and finishes at 0x00500
     ; (data is pushed from the highest address to the lowest one)
@@ -116,6 +118,14 @@ bootloader:
     ; directly jump to the instructions that resets the hard drive disk
     ; before starting to load sectors from it
     jmp reset_hd
+
+    not_hd_error:
+
+        ; prepare DS:SI to point on the first character of the error message,
+        ; so it can be printed out by the print function
+        mov si, not_hd_error_msg
+        call print
+        hlt
 
 ; ----------------------------------------------------------------------------
 ; reset the hd disk (force the hd controller to get ready
@@ -150,6 +160,14 @@ reset_hd:
         ; if the hard drive is correctly reset,
         ; then calls the function that loads stage2
         jmp load_stage2
+
+    hd_error:
+
+        ; prepare DS:SI to point on the first character of the error message,
+        ; so it can be printed out by the print function
+        mov si, hd_error_msg
+        call print
+        hlt
 
 ; ----------------------------------------------------------------------------
 ; search, find and load stage2.sys from the hard drive to memory
