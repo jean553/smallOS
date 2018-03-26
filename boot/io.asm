@@ -213,8 +213,9 @@ load_file:
         push ds
         mov bx, 0x0A00
         mov ds, bx
-        add di, word [root_entry_file_first_cluster]
-        mov dx, word [di]      ; the first cluster is at byte 26 in root directory entry
+
+        ; TODO: no idea why I cannot add a variable number to di...
+        mov dx, word [di + 26]      ; the first cluster is at byte 26 in root directory entry
         pop ds
 
         pop cx
@@ -261,7 +262,14 @@ load_file:
             mov ah, 0x02    ; the function 0x02 to read a sector
             mov al, 1       ; read one sector exactly
             int 0x13        ; bios interrupt for hard drive
-            jb hd_error     ; display an error message in case of error
+
+            jnc continue_read_sector
+
+            mov si, file_not_found
+            call print
+            hlt
+
+            continue_read_sector:
 
             pop dx
             pop cx
