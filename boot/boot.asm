@@ -75,6 +75,7 @@ times 0x3e - ($-$$) db 0
 stage2              db "STAGE2  BIN"
 hd_error_msg        db "Hard disk error", 0
 not_hd_error_msg    db "Not hard disk", 0
+reset_disk_attempts db 3
 
 ; ----------------------------------------------------------------------------
 ; Inclusions
@@ -145,7 +146,7 @@ reset_hd:
 
         ; try three attemps only, jump to display an error message if
         ; the function fails more than 3 times
-        cmp cl, 3
+        cmp cl, byte [reset_disk_attempts]
         je hd_error
 
         ; initialize the first hard drive with the BIOS interrupts 
@@ -218,4 +219,4 @@ times 510 - ($-$$) db 0
 
 ; the two last bytes of a bootsector are always AA and 55; this is a convention
 ; to localize the end of the boot sector program
-dw 0xaa55
+dw 0xAA55

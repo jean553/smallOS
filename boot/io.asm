@@ -2,6 +2,22 @@
 ; Input/Output basic routines
 ;-----------------------------------------------------------------------------
 
+; the location of the root directory on the disk is from 0x5800 to 0xA000
+
+; the starting LBA sector of the root directory is sector 44 (byte 0x5800 / 512 = 44)
+root_dir_starting_sector        dw 44
+
+; the root directory is 36 sectors long (18 432 bytes long)
+root_dir_sectors_amount         dw 36
+
+; the location of the first FAT on the disk is from 0x0800 to 0x2FFF
+
+; the starting LBA sector of the FAT is sector 4 (byte 0x0800 / 512 = 4)
+fat_starting_sector             dw 4
+
+; the fat is 17 sectors long
+fat_sectors_amount              dw 17
+
 ;-----------------------------------------------------------------------------
 ; Displays every character from the given address, until 0 is found
 ;-----------------------------------------------------------------------------
@@ -28,8 +44,6 @@ print:
 
 ;-----------------------------------------------------------------------------
 ; Loads the FAT16 root directory from the hard disk to 0x0A000 - 0x0E800
-; The root directory is 18 432 bytes long, all bytes are loaded
-; The location of the root directory on the disk is byte 0x5800 to 0xA000
 ;-----------------------------------------------------------------------------
 
 load_root:
@@ -39,19 +53,17 @@ load_root:
     mov es, bx
     xor bx, bx
 
-    ; the starting LBA sector of the root directory is sector 44
-    ; byte 0x5800 / 512 = 44
-    mov ax, 44
+    ; the first sector to read is the first root directory sector
+    mov ax, word [root_dir_starting_sector]
 
-    ; the root directory is 36 sectors long
-    mov cx, 36
+    ; the amount of sectors to read is the root directory sectors amount
+    mov cx, [root_dir_sectors_amount]
 
     call read_sectors
-
     ret
 
 ;-----------------------------------------------------------------------------
-; Loads the FAT16 first FAT from the hard disk to 0x0E800
+; Loads the FAT16 first FAT from the hard disk to 0x0E800 - 0x10FFF
 ;-----------------------------------------------------------------------------
 
 load_fat:
@@ -61,14 +73,13 @@ load_fat:
     mov es, bx
     xor bx, bx
 
-    ; the starting LBA sector of the FAT is sector 4
-    mov ax, 4
+    ; the first sector to read is the first FAT sector
+    mov ax, word [fat_starting_sector]
 
-    ; the FAT is 17 sectors long
-    mov cx, 17
+    ; the amount of sectors to read is the FAT sectors amount
+    mov cx, word [fat_sectors_amount]
 
     call read_sectors
-
     ret
 
 ;-----------------------------------------------------------------------------
