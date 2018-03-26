@@ -16,10 +16,13 @@ print:
     lodsb              ;load ds:si in al, and increment si (store one letter in al and
                        ;jump to the next one
     or al,al           ;is al = 0 ? (end of the string)
-    jz routine_end     ;if al = 0, jump to the end of the sector
+    jz print_end       ;if al = 0, jump to the end of the sector
     mov ah, 0x0e       ;the function to write one character is 0x0e
     int 0x10           ;the video interrupt
     jmp print          ;jump to the beginning of the loop
+
+    print_end:
+        ret
 
 ;-----------------------------------------------------------------------------
 ; Shows a hard drive error and halt the whole system
@@ -66,7 +69,7 @@ load_root:
 
     call read_sectors
 
-    jmp routine_end
+    ret
 
 ;-----------------------------------------------------------------------------
 ; Loads the FAT16 first FAT from the hard disk to 0x0E800
@@ -87,7 +90,7 @@ load_fat:
 
     call read_sectors
 
-    jmp routine_end
+    ret
 
 ;-----------------------------------------------------------------------------
 ; Reads sector(s) on the disk and loads it in memory at the expected location
@@ -263,9 +266,3 @@ load_file:
     end_load_file:
 
     ret
-
-;-----------------------------------------------------------------------------
-; Terminates the current executed routine
-;-----------------------------------------------------------------------------
-routine_end:
-    ret                ;get CS and IP from the stack and continue to execute from there
