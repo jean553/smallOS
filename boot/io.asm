@@ -209,14 +209,17 @@ load_file:
 
         pop di
 
+        push di
+        add di, word [root_entry_file_first_cluster] 
+
         ; find the first cluster (=first sector) of the file
         push ds
         mov bx, 0x0A00
         mov ds, bx
 
-        ; TODO: no idea why I cannot add a variable number to di...
-        mov dx, word [di + 26]      ; the first cluster is at byte 26 in root directory entry
+        mov dx, word [di]      ; the first cluster is at byte 26 in root directory entry
         pop ds
+        pop di
 
         pop cx
         pop si
