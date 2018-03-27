@@ -178,51 +178,76 @@ read_sectors:
 ;-----------------------------------------------------------------------------
 ; DS: data segment of the file name to find
 ; SI: the address of the string of the file name to find (DS:SI)
+; ES:DI: location where the whole file must be loaded
 ;-----------------------------------------------------------------------------
 
 load_file:
 
-    push bx
-    push es
-    push di
+        ; push on the stack the functions arguments required later
+        ; but stored for now into registers required right now
+        push es
+        push di
 
-    ; set ES:DI to the root directory location (0x0A00:0x0000)
-    mov bx, 0x0A00
-    mov es, bx
-    mov di, 0
+        ; set ES:DI to the root directory location (0x0A00:0x0000)
+        ; in order to read one by one the root directory entries
+        ; in order to find the searched file
+        mov bx, 0x0A00
+        mov es, bx
+        mov di, 0x0000
 
-    ; we iterate over the 576 root directory entries
-    mov cx, word [root_dir_entries]
+        ; the maximum amount of iterations over the root directory entries
+        ; is equal to the amount of root directory entries (576)
+        mov cx, word [root_dir_entries]
 
-    push si
+    .SEARCH_FILE_LOOP
 
-    search_file:
-
-        pop si
+        ; push cx and di on stack as they are modified by rep cmpsb
+        ; during the searched file name and root entry file name comparison
+        push cx
+        push di
         push si
 
-        push cx                 ; cx is modified for ret cmpsb
-        mov cx, word [filename_length]
-        push di
-        rep cmpsb               ; compare 11 characters between ES:DI and DS:SI
-        je found_file           ; entry has been found
+        ; check if the current root directory entry file name
+        ; is the same as the searched file
+        ; (compare the 11 characters one by one between ES:DI and DS:SI)
+        mov cx, word [filename_length]  ; there are 11 characters to compare,
+                                        ; cx must be equal to the amount of comparisons
+                                        ; for rep cmpsb
+        rep cmpsb                       ; repeat 11 times (cx times) comparison between es:di
+                                        ; and ds:si by incrementing SI and DI everytime
+        je .FOUND_FILE                  ; the two strings are equal, the file is found
+
+        ; get back di and cx from the stack, they are used for the loop that checks
+        ; the root directory entries one by one
+        pop si
         pop di
+        pop cx
+
+        ; di is now equal to the address of the previous compared root entry filename character;
+        ; we add to it 32 bytes in order to point on the first character of the filename
+        ; of the next root entry
         add di, word [root_dir_entry_size]
-        pop cx                  ; get back cx for loop
-        loop search_file        ; iterate
 
-    pop si
-    pop di
-    pop es
-    pop bx
+        ; repeat the search file process, decrement cx by 1,
+        ; does not jump back and continues if cx == 0
+        ; (that means every root directory entry has been browsed)
+        loop .SEARCH_FILE_LOOP
 
-    mov si, file_not_found
-    call print
-    hlt
+        ; the file has not been found, an error message is displayed
+        ; and the system is halted
+        ;
+        ; NOTE: as the system is directly halted, we do not clear the stack content
+        mov si, file_not_found
+        call print
+        hlt
 
-    found_file:
+    .FOUND_FILE
 
+        ; in order to keep the stack balanced, the values pushed for the file search
+        ; (at SEARCH_FILE_LOOP) are removed from the stack
+        pop si
         pop di
+        pop cx
 
         push di
         add di, word [root_entry_file_first_cluster] 
@@ -236,11 +261,8 @@ load_file:
         pop ds
         pop di
 
-        pop cx
-        pop si
         pop di
         pop es
-        pop bx
 
         ; load the whole file in memory
 
@@ -310,5 +332,4 @@ load_file:
             jmp continue_load_file
 
     end_load_file:
-
-    ret
+        ret
