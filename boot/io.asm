@@ -194,17 +194,13 @@ load_file:
     ; we iterate over the 576 root directory entries
     mov cx, word [root_dir_entries]
 
-    push si
-
     search_file:
-
-        pop si
-        push si
 
         ; push cx and di on stack as they are modified by rep cmpsb
         ; during the searched file name and root entry file name comparison
         push cx
         push di
+        push si
 
         ; check if the current root directory entry file name
         ; is the same as the searched file
@@ -218,6 +214,7 @@ load_file:
 
         ; get back di and cx from the stack, they are used for the loop that checks
         ; the root directory entries one by one
+        pop si
         pop di
         pop cx
 
@@ -240,6 +237,7 @@ load_file:
 
     found_file:
 
+        pop si
         pop di
 
         push di
@@ -255,7 +253,6 @@ load_file:
         pop di
 
         pop cx
-        pop si
         pop di
         pop es
         pop bx
