@@ -189,7 +189,7 @@ load_file:
     ; set ES:DI to the root directory location (0x0A00:0x0000)
     mov bx, 0x0A00
     mov es, bx
-    mov di, 0
+    mov di, 0x0000
 
     ; we iterate over the 576 root directory entries
     mov cx, word [root_dir_entries]
@@ -201,15 +201,33 @@ load_file:
         pop si
         push si
 
-        push cx                 ; cx is modified for ret cmpsb
-        mov cx, word [filename_length]
+        ; push cx and di on stack as they are modified by rep cmpsb
+        ; during the searched file name and root entry file name comparison
+        push cx
         push di
-        rep cmpsb               ; compare 11 characters between ES:DI and DS:SI
-        je found_file           ; entry has been found
+
+        ; check if the current root directory entry file name
+        ; is the same as the searched file
+        ; (compare the 11 characters one by one between ES:DI and DS:SI)
+        mov cx, word [filename_length]  ; there are 11 characters to compare,
+                                        ; cx must be equal to the amount of comparisons
+                                        ; for rep cmpsb
+        rep cmpsb                       ; repeat 11 times (cx times) comparison between es:di
+                                        ; and ds:si by incrementing SI and DI everytime
+        je found_file                   ; the two strings are equal, the file is found
+
+        ; get back di and cx from the stack, they are used for the loop that checks
+        ; the root directory entries one by one
         pop di
+        pop cx
+
+        ; di is now equal to the address of the previous compared root entry filename character;
+        ; we add to it 32 bytes in order to point on the first character of the filename
+        ; of the next root entry
         add di, word [root_dir_entry_size]
-        pop cx                  ; get back cx for loop
-        loop search_file        ; iterate
+
+        ; repeat the search file process, decrement cx by 1
+        loop search_file
 
     pop si
     pop di
