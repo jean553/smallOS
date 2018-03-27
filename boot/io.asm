@@ -121,17 +121,18 @@ read_sectors:
 
     ; all those registers are modified during the CHS calculation,
     ; and we still expect their original values at the end of the process
-    push ax
-    push cx
     push bx
     push cx
 
-    ; calculate the absolute sector
-    ; sector = (logical sector % sectors per track) + 1
-    xor dx, dx
-    mov cx, word [sectors_per_track]
-    div cx
-    inc dx          ; dx = sector, ax = (lba sector / sectors per track)
+    ; calculate the absolute sector -> sector = (logical sector % sectors per track) + 1
+    xor dx, dx                      ; div [word] actually takes the dividend from dx and ax,
+                                    ; (dx for high bits and ax for low bits),
+                                    ; we only want to considere the ax content,
+                                    ; so all the dx bits are set to 0
+    div word [sectors_per_track]    ; div [word] stores the result into ax and rest into dx
+                                    ; so now dx = (logical sector % sectors per track)
+    inc dx                          ; increment dx, so now dx = (logical sector % sectors per track) + 1
+
     mov bx, dx
 
     ; calculate the absolute head and absolute track
@@ -141,18 +142,16 @@ read_sectors:
     div cx          ; bx = sector, ax = track, dx = head
 
     ; set registers for the BIOS interrupt
-    mov ch, al
-    mov cl, bl
-    mov dh, dl
-    mov dl, 0x80
+    mov ch, al              ; the amount of cylinder(s) is set
+    mov cl, bl              ; the sector number to read for bit from 0 to 5,
+                            ; bits 6 and 7 are bits 8 and 9 of the cylinders amount
+    mov dh, dl              ; the head number to use
+    mov dl, 0x80            ; unit to use (0x80 for hard drive, less for floppy)
     pop ax
-    mov ah, 0x02
+    mov ah, 0x02            ; the function to read sectors
     pop bx
 
     int 0x13
-
-    pop cx
-    pop ax
 
     ret
 
