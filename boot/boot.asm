@@ -21,7 +21,7 @@ jmp bootloader
 ; BIOS Parameter block for FAT16 file system, has to start at the byte 0x3
 ; ----------------------------------------------------------------------------
 
-db "pitios", 0, 0 ;8 bytes, name of the operating system
+db "smallos", 0   ;8 bytes, name of the operating system
 dw 512            ;2 bytes, bytes per sector, each one is 512 bytes long
 db 1              ; 1 byte, sectors per cluster, it is possible to group
                   ; the sectors by 'cluster', here, we only have one
@@ -108,7 +108,7 @@ bootloader:
     ; an error message is printed and the system is halted if the current disk
     ; is not a hard disk
     cmp dl, 0x80
-    jne not_hd_error
+    jne .NOT_HARD_DRIVE_ERROR
 
     ; starts the stack at 0x00A00 and finishes at 0x00500
     ; (data is pushed from the highest address to the lowest one)
@@ -120,7 +120,7 @@ bootloader:
     ; before starting to load sectors from it
     jmp reset_hd
 
-    not_hd_error:
+    .NOT_HARD_DRIVE_ERROR:
 
         ; prepare DS:SI to point on the first character of the error message,
         ; so it can be printed out by the print function
@@ -142,27 +142,27 @@ reset_hd:
     ; that's why we declare a counter here that we reset to 0
     xor cl, cl
 
-    loop_reset_hd:
+    .LOOP_RESET_HARD_DRIVE
 
         ; try three attemps only, jump to display an error message if
         ; the function fails more than 3 times
         cmp cl, byte [reset_disk_attempts]
-        je hd_error
+        je .HARD_DRIVE_ERROR
 
         ; initialize the first hard drive with the BIOS interrupts 
-        mov ah, 0            ; init disks function is 0
-        mov dl, 0x80         ; first hard disk is 80, second one is 81
-        int 0x13             ; disk access interrupt, reset the disk
+        mov ah, 0                     ; init disks function is 0
+        mov dl, 0x80                  ; first hard disk is 80, second one is 81
+        int 0x13                      ; disk access interrupt, reset the disk
 
-        inc cl               ; increment the attempts amount
-        jb loop_reset_hd     ; jump back to the address of the beginning of the action
-                             ; if an error occured (cf=1, carry flag)
+        inc cl                        ; increment the attempts amount
+        jb .LOOP_RESET_HARD_DRIVE     ; jump back to the address of the beginning of the action
+                                      ; if an error occured (cf=1, carry flag)
 
         ; if the hard drive is correctly reset,
         ; then calls the function that loads stage2
         jmp load_stage2
 
-    hd_error:
+    .HARD_DRIVE_ERROR
 
         ; prepare DS:SI to point on the first character of the error message,
         ; so it can be printed out by the print function
