@@ -248,88 +248,99 @@ load_file:
         pop si
         pop di
         pop cx
+        ; di now contains the first byte of the found file root entry
 
-        push di
+        ; add to the di offset the number of bytes to bypass
+        ; in order to point on the file first sector
+        ; (26 bytes after the entry starts)
         add di, word [root_entry_file_first_cluster] 
 
-        ; find the first cluster (=first sector) of the file
+        ; data from the root directory has to be read,
+        ; so the current ds address is pushed on stack temporarily 
         push ds
+
+        ; read the position of the first sector of the file from the root directory,
+        ; (the root directory is loaded at 0xA000:0x0000)
         mov bx, 0x0A00
         mov ds, bx
+        mov dx, word [di]
+        ; dx now contains the file first sector position on disk
 
-        mov dx, word [di]      ; the first cluster is at byte 26 in root directory entry
+        ; get back the current data segment from the stack
         pop ds
-        pop di
 
+        ; get back the location where the file has to be loaded in memory
+        ; these values were pushed at the very beginning of the function
+        ; as their registers were used for computations
         pop di
         pop es
 
         ; load the whole file in memory
 
-        continue_load_file:
+    .LOOP_LOAD_FILE
 
-            mov cx, dx  ; save the initial FAT entry
-            sub dx, 3   ; remove the three initial FAT entries
-                        ; TODO: #33 it should be 2 and not 3
-            add dx, word [first_data_sector]  ; the first data sector is at sector 80 on disk
-            mov ax, dx
+        mov cx, dx  ; save the initial FAT entry
+        sub dx, 3   ; remove the three initial FAT entries
+                    ; TODO: #33 it should be 2 and not 3
+        add dx, word [first_data_sector]  ; the first data sector is at sector 80 on disk
+        mov ax, dx
 
-            push ax
-            push bx
-            push cx
-            push dx
+        push ax
+        push bx
+        push cx
+        push dx
 
-            ; absolute sector = (sector % sectors per track) + 1
-            xor dx, dx
-            mov cx, word [sectors_per_track]
-            div cx
-            inc dl
-            mov cl, dl
+        ; absolute sector = (sector % sectors per track) + 1
+        xor dx, dx
+        mov cx, word [sectors_per_track]
+        div cx
+        inc dl
+        mov cl, dl
 
-            ; absolute head = (sector / sectors per track) % number of heads
-            push cx
-            xor dx, dx
-            mov cx, word [heads_amount]
-            div cx
-            pop cx
-            mov dh, dl
+        ; absolute head = (sector / sectors per track) % number of heads
+        push cx
+        xor dx, dx
+        mov cx, word [heads_amount]
+        div cx
+        pop cx
+        mov dh, dl
 
-            ; absolute track = logical sector / (sectors per track * number of heads)
-            mov ch, al
+        ; absolute track = logical sector / (sectors per track * number of heads)
+        mov ch, al
 
-            ; read the sector
-            mov dl, 0x80    ; read the first hard drive, so 0x80
-            mov ah, 0x02    ; the function 0x02 to read a sector
-            mov al, 1       ; read one sector exactly
-            int 0x13        ; bios interrupt for hard drive
+        ; read the sector
+        mov dl, 0x80    ; read the first hard drive, so 0x80
+        mov ah, 0x02    ; the function 0x02 to read a sector
+        mov al, 1       ; read one sector exactly
+        int 0x13        ; bios interrupt for hard drive
 
-            jnc continue_read_sector
+        jnc .CONTINUE_READ_SECTOR
 
-            mov si, file_not_found
-            call print
-            hlt
+        mov si, file_not_found
+        call print
+        hlt
 
-            continue_read_sector:
+    .CONTINUE_READ_SECTOR
 
-            pop dx
-            pop cx
-            pop bx
-            pop ax
+        pop dx
+        pop cx
+        pop bx
+        pop ax
 
-            push ds
-            push bx
-            mov bx, 0x0E80
-            mov ds, bx
-            mov bx, cx
+        push ds
+        push bx
+        mov bx, 0x0E80
+        mov ds, bx
+        mov bx, cx
 
-            ; TODO: #33 I don't know exactly why I have to substract one here
-            cmp dword [bx - 1], 0xFFFF
+        ; TODO: #33 I don't know exactly why I have to substract one here
+        cmp dword [bx - 1], 0xFFFF
 
-            pop bx
-            pop ds
+        pop bx
+        pop ds
 
-            je end_load_file
-            jmp continue_load_file
+        je .FILE_LOADED
+        jmp .LOOP_LOAD_FILE
 
-    end_load_file:
+    .FILE_LOADED
         ret
