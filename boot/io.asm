@@ -124,35 +124,47 @@ read_sectors:
     push bx
     push cx
 
-    ; calculate the absolute sector -> sector = (logical sector % sectors per track) + 1
+    ; calculate the absolute sector
+    ; -> sector = (logical sector % sectors per track) + 1
     xor dx, dx                      ; div [word] actually takes the dividend from dx and ax,
                                     ; (dx for high bits and ax for low bits),
                                     ; we only want to considere the ax content,
                                     ; so all the dx bits are set to 0
     div word [sectors_per_track]    ; div [word] stores the result into ax and rest into dx
-                                    ; so now dx = (logical sector % sectors per track)
+                                    ; so now dx = (logical sector % sectors per track) and
+                                    ; ax = (logical sector / sectors per track)
     inc dx                          ; increment dx, so now dx = (logical sector % sectors per track) + 1
+    ; the CHS sector is now into dx
 
+    ; the dx register is used for the head and the track calculation,
+    ; so we store the sector into the bx register,
+    ; that won't be used into the next computations 
     mov bx, dx
 
     ; calculate the absolute head and absolute track
-    ; head = (logical sector / sectors per track) % number of heads = ax % number of heads
-    xor dx, dx
-    mov cx, word [heads_amount]
-    div cx          ; bx = sector, ax = track, dx = head
+    ; -> head = (logical sector / sectors per track) % number of heads
+    ; -> cylinder = (logical sector / sectors per track) / number of heads
+    xor dx, dx                      ; same reason as for the CHS sector calculation just before
+    div word [heads_amount]
+    ; the CHS cylinder is now into ax, the CHS head is now into dx
 
-    ; set registers for the BIOS interrupt
-    mov ch, al              ; the amount of cylinder(s) is set
-    mov cl, bl              ; the sector number to read for bit from 0 to 5,
-                            ; bits 6 and 7 are bits 8 and 9 of the cylinders amount
-    mov dh, dl              ; the head number to use
-    mov dl, 0x80            ; unit to use (0x80 for hard drive, less for floppy)
-    pop ax
-    mov ah, 0x02            ; the function to read sectors
-    pop bx
+    ; read the sectors
+    mov ch, al                      ; ch stores the cylinder number, currently stored into ax
+    mov cl, bl                      ; cl stores the sector number to read for bit from 0 to 5,
+                                    ; currently stored into bx;
 
+                                    ; NOTE: bits 6 and 7 are bits 8 and 9 of the cylinder number,
+                                    ; we just dont considere this constraint at all in that case,
+                                    ; this code is not supposed to manipulate high cylinder numbers
+
+    mov dh, dl                      ; dh stores the head number, currently stored into dx
+                                    ; (so we can simply ignore dh content and replace it by dl)
+    mov dl, 0x80                    ; unit to use (0x80 for hard drive, less for floppy)
+    pop ax                          ; al stores the amount of sectors to read, currently stored into the stack
+    mov ah, 0x02                    ; the function to read sectors is 0x02
+    pop bx                          ; es:bx contains the address where sectors must be written,
+                                    ; the offset is currently on the stack
     int 0x13
-
     ret
 
 ;-----------------------------------------------------------------------------
