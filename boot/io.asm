@@ -119,8 +119,9 @@ load_fat:
 
 read_sectors:
 
-    ; all those registers are modified during the CHS calculation,
-    ; and we still expect their original values at the end of the process
+    ; bx and cx are used for CHS calculation, but they also contain
+    ; the number of sectors to read and the memory location to fill
+    ; used after the computation, so we push them on the stack
     push bx
     push cx
 
@@ -150,6 +151,10 @@ read_sectors:
 
     ; read the sectors
     mov ch, al                      ; ch stores the cylinder number, currently stored into ax
+
+    pop ax                          ; al stores the amount of sectors to read, currently stored into the stack
+    mov ah, 0x02                    ; ah stores the function to read sectors (0x02)
+
     mov cl, bl                      ; cl stores the sector number to read for bit from 0 to 5,
                                     ; currently stored into bx;
 
@@ -157,13 +162,12 @@ read_sectors:
                                     ; we just dont considere this constraint at all in that case,
                                     ; this code is not supposed to manipulate high cylinder numbers
 
+    pop bx                          ; es:bx contains the address where sectors must be written,
+                                    ; the offset is currently on the stack
+
     mov dh, dl                      ; dh stores the head number, currently stored into dx
                                     ; (so we can simply ignore dh content and replace it by dl)
     mov dl, 0x80                    ; unit to use (0x80 for hard drive, less for floppy)
-    pop ax                          ; al stores the amount of sectors to read, currently stored into the stack
-    mov ah, 0x02                    ; the function to read sectors is 0x02
-    pop bx                          ; es:bx contains the address where sectors must be written,
-                                    ; the offset is currently on the stack
     int 0x13
     ret
 
