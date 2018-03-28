@@ -8,7 +8,7 @@ bits 16
 ; Loads the Global Descriptor Table (null, code and data descriptors)
 ; every descriptor is 64 bits long
 
-jmp end     ; skip the GDT data part
+jmp start
 
 ; -----------------------------------------------------------------
 ; Inclusions
@@ -20,24 +20,24 @@ jmp end     ; skip the GDT data part
 ; Global descriptor table
 ; -----------------------------------------------------------------
 
-; bits 0-15: bits 0 - 15 of the segment limit
-; bits 16-39: bits 0 - 23 of the base address
-; bit 40: access bit for virtual memory, 0 to ignore virtual memory
-; bit 41: 1 (read only for data segments, execute only for code segments),
-;         0 (read and write data segments, read and execute code segments)
-; bit 42: expension direction bit, 0 to ignore
-; bit 43: descriptor type (0: data, 1: code)
-; bit 44: descriptor bit (0: system descriptor, 1: code or data descriptor)
-; bits 45-46: ring of the descriptor (from 0 to 3)
-; bit 47: indicates if the segment uses virtual memory (0: no, 1: yes)
-; bits 48-51: bits 16-19 of the segment limit
-; bit 52-53: OS reserved, set to 0
-; bit 54: 0 (16 bits segment), 1 (32 bits segment)
-; bit 55: granulariry bit
-;         0 (the limit is in 1 byte blocks)
-;         1 (the limit is in 4 Kbytes blocks)
-;         if set to 1, the limit becomes {limit}*4096
-; bits 56-63: bits 24 - 32 of the base address
+; bits 0-15         bits 0 - 15 of the segment limit
+; bits 16-39        bits 0 - 23 of the base address
+; bit 40            access bit for virtual memory, 0 to ignore virtual memory
+; bit 41            1 (read only for data segments, execute only for code segments),
+;                   0 (read and write data segments, read and execute code segments)
+; bit 42            expension direction bit, 0 to ignore
+; bit 43            descriptor type (0: data, 1: code)
+; bit 44            descriptor bit (0: system descriptor, 1: code or data descriptor)
+; bits 45-46        ring of the descriptor (from 0 to 3)
+; bit 47            indicates if the segment uses virtual memory (0: no, 1: yes)
+; bits 48-51        bits 16-19 of the segment limit
+; bit 52-53         OS reserved, set to 0
+; bit 54            0 (16 bits segment), 1 (32 bits segment)
+; bit 55            granulariry bit
+;                   0 (the limit is in 1 byte blocks)
+;                   1 (the limit is in 4 Kbytes blocks)
+;                   if set to 1, the limit becomes {limit}*4096
+; bits 56-63        bits 24 - 32 of the base address
 
 gdt_start:
 
@@ -109,7 +109,7 @@ gdt_end:
     dw gdt_end - gdt_start - 1      ; the size of the GDT
     dd gdt_start                    ; the starting address of the GDT
 
-end:
+start:
 
     ; it is mandatory to clear every BIOS interrupt before loading GDT
     cli
@@ -121,6 +121,7 @@ end:
     mov eax, cr0
     or eax, 1       ; only update the first bit of cr0 to 1 to switch to pmode
     mov cr0, eax
+    ; the system is now in 32 bits protected mode
 
     ; enable A20 to access up to 32 address bus lines
     ; modify the port 0x92
