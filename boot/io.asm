@@ -279,10 +279,18 @@ load_file:
 
     .LOOP_LOAD_FILE
 
-        mov cx, dx  ; save the initial FAT entry
-        sub dx, 3   ; remove the three initial FAT entries
-                    ; TODO: #33 it should be 2 and not 3
-        add dx, word [first_data_sector]  ; the first data sector is at sector 80 on disk
+        ; the FAT contains some initial sectors that are not considered when loading a file
+        ; when iterating over a file cluster (there are three initial FAT entries to ignore)
+        ; FIXME: requires explanation and refactor
+        mov cx, dx                           ; save the initial FAT entry
+        sub dx, 3                            ; remove the three initial FAT entries
+                                             ; TODO: #33 it should be 2 and not 3
+
+        ; the data area starts at the sector 80, so it is necessary to add 80
+        ; to the cluster value as this value is relative to the beginning of the data area
+        add dx, word [first_data_sector]     ; the first data sector is at sector 80 on disk
+
+        ; set parameters of the sectors reading procedure
         mov ax, dx
 
         push ax
