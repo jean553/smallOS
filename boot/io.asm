@@ -45,6 +45,11 @@ root_entry_file_first_cluster   dw 26
 ; (the first byte is at 0xA000, so 0xA000 / 512 = 80)
 first_data_sector               dw 80
 
+; the first entries of the FAT must be ignored;
+; there are three reserved entries on the FAT
+; TODO: #33 it should be 2 and not 3
+fat_reserved_entries            dw 3
+
 ;-----------------------------------------------------------------------------
 ; Displays every character from the given address, until 0 is found
 ;-----------------------------------------------------------------------------
@@ -263,8 +268,8 @@ load_file:
         ; (the root directory is loaded at 0xA000:0x0000)
         mov bx, 0x0A00
         mov ds, bx
-        mov dx, word [di]
-        ; dx now contains the file first sector position on disk
+        mov ax, word [di]
+        ; ax now contains the file first sector position on disk
 
         ; get back the current data segment from the stack
         pop ds
@@ -275,80 +280,26 @@ load_file:
         pop di
         pop es
 
-        ; load the whole file in memory
+    .LOAD_FILE
 
-    .LOOP_LOAD_FILE
+        ; FIXME: #58 for refactoring purposes, this section is only able to read one sector
+        ; from the disk. Instead, it should iterate over all the sectors of the file
+        ; until the file is fully loaded.
 
         ; the FAT contains some initial sectors that are not considered when loading a file
         ; when iterating over a file cluster (there are three initial FAT entries to ignore)
-        ; FIXME: requires explanation and refactor
-        mov cx, dx                           ; save the initial FAT entry
-        sub dx, 3                            ; remove the three initial FAT entries
-                                             ; TODO: #33 it should be 2 and not 3
+        sub ax, word [fat_reserved_entries]  ; remove the three initial FAT entries
 
         ; the data area starts at the sector 80, so it is necessary to add 80
         ; to the cluster value as this value is relative to the beginning of the data area
-        add dx, word [first_data_sector]     ; the first data sector is at sector 80 on disk
+        add ax, word [first_data_sector]     ; the first data sector is at sector 80 on disk
+        ; ax now contains the logical sector to read
+        ; (required as an input of read_sectors)
 
-        ; set parameters of the sectors reading procedure
-        mov ax, dx
+        ; as we check one entry from the FAT at a time,
+        ; then we read one sector at a time
+        ; (required as an input of read_sectors)
+        mov cx, 1
 
-        push ax
-        push bx
-        push cx
-        push dx
-
-        ; absolute sector = (sector % sectors per track) + 1
-        xor dx, dx
-        mov cx, word [sectors_per_track]
-        div cx
-        inc dl
-        mov cl, dl
-
-        ; absolute head = (sector / sectors per track) % number of heads
-        push cx
-        xor dx, dx
-        mov cx, word [heads_amount]
-        div cx
-        pop cx
-        mov dh, dl
-
-        ; absolute track = logical sector / (sectors per track * number of heads)
-        mov ch, al
-
-        ; read the sector
-        mov dl, 0x80    ; read the first hard drive, so 0x80
-        mov ah, 0x02    ; the function 0x02 to read a sector
-        mov al, 1       ; read one sector exactly
-        int 0x13        ; bios interrupt for hard drive
-
-        jnc .CONTINUE_READ_SECTOR
-
-        mov si, file_not_found
-        call print
-        hlt
-
-    .CONTINUE_READ_SECTOR
-
-        pop dx
-        pop cx
-        pop bx
-        pop ax
-
-        push ds
-        push bx
-        mov bx, 0x0E80
-        mov ds, bx
-        mov bx, cx
-
-        ; TODO: #33 I don't know exactly why I have to substract one here
-        cmp dword [bx - 1], 0xFFFF
-
-        pop bx
-        pop ds
-
-        je .FILE_LOADED
-        jmp .LOOP_LOAD_FILE
-
-    .FILE_LOADED
+        call read_sectors
         ret
