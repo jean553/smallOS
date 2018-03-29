@@ -119,9 +119,15 @@ start:
 
     ; switch into protected mode (32 bits)
     mov eax, cr0
-    or eax, 1       ; only update the first bit of cr0 to 1 to switch to pmode
+    or eax, 00000001b               ; only update the first bit of cr0 to 1 to switch to pmode
     mov cr0, eax
     ; the system is now in 32 bits protected mode
+
+    ; in real mode, for backward compatibility reasons, the address bus has 20 bits lines
+    ; (in order to access addresses from 0x00000 to 0xFFFFF)
+    ; in order to access larger addresses through a bus of 32 bits lines (protected mode),
+    ; it is required to trigger the A20 gate on the motherboard, so the 21st line is enabled,
+    ; so 32 bits addresses can correctly go through.
 
     ; enable A20 to access up to 32 address bus lines
     ; modify the port 0x92
