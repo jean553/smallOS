@@ -190,6 +190,7 @@ load_file:
 
         ; push on the stack the functions arguments required later
         ; but stored for now into registers required right now
+        push bx
         push es
         push di
 
@@ -279,6 +280,7 @@ load_file:
         ; as their registers were used for computations
         pop di
         pop es
+        pop bx
 
     .LOAD_FILE
 
