@@ -8,7 +8,16 @@ bits 16
 ; Loads the Global Descriptor Table (null, code and data descriptors)
 ; every descriptor is 64 bits long
 
+mov bx, 0x07e0
+mov ds, bx
+
 jmp start
+
+; ----------------------------------------------------------------------------
+; Other variables
+; ----------------------------------------------------------------------------
+
+kernel              db "KERNEL  BIN"
 
 ; -----------------------------------------------------------------
 ; Inclusions
@@ -48,7 +57,7 @@ dd 0
 dd 0
 
 ; -----------------------------------------------------------------
-; code descriptor (code can be stored from 0x0 to 0xFFFFF)
+; code segment descriptor (code can be stored from 0x0 to 0xFFFFF)
 ; -----------------------------------------------------------------
 dw 0xFFFF       ; segment limit bits 0-15 is 0xFFFF
 dw 0            ; segment base is 0x0
@@ -72,7 +81,7 @@ db 11001111b
 db 0            ; segment base is 0x0
 
 ; -----------------------------------------------------------------
-; data descriptor (code can be stored from 0x0 to 0xFFFFF)
+; data segment descriptor (code can be stored from 0x0 to 0xFFFFF)
 ; -----------------------------------------------------------------
 dw 0xFFFF       ; segment limit bits 0-15 is 0xFFFF
 dw 0            ; segment base is 0x0
@@ -85,7 +94,7 @@ db 0
 ; 1: code/data descriptor, not system descriptor
 ; 00: the segments are executed at ring 0
 ; 0: the segments do not use virtual memory
-db 00010010b
+db 10010010b
 
 ; 1111: segment limit bits 0-15 is 0xFFFF, complete segment limit address is now 0xFFFFF
 ; 00: OS reserved, set to 0
@@ -100,6 +109,7 @@ db 0            ; segment base is 0x0
 ; -----------------------------------------------------------------
 
 gdt_end:
+gdt:
 
     ; the location that stores the value to load with LGDT
     ; must be in the format:
@@ -114,14 +124,14 @@ start:
     ; it is mandatory to clear every BIOS interrupt before loading GDT
     cli
 
-    ; load the GDT into GDTR register
-    lgdt [gdt_end]
-
     ; switch into protected mode (32 bits)
     mov eax, cr0
-    or eax, 00000001b               ; only update the first bit of cr0 to 1 to switch to pmode
+    or eax, 0000000000000001b   ; only update the first bit of cr0 to 1 to switch to pmode
     mov cr0, eax
     ; the system is now in 32 bits protected mode
+
+    ; load the GDT into GDTR register
+    lgdt [gdt]
 
     ; in real mode, for backward compatibility reasons, the address bus has 20 bits lines
     ; (in order to access addresses from 0x00000 to 0xFFFFF)
@@ -140,5 +150,7 @@ start:
     mov al, 00000010b
     out 0x92, al
 
-    ; halt the system
+    mov bx, 0x8
+    mov es, bx
+
     hlt
