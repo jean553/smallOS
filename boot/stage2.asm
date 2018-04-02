@@ -1,4 +1,7 @@
-org 0x0
+; lgdt [gdt] needs an offset to be set: in fact, this program is loaded at 0x7E00,
+; and we need to add this offset to [gdt] in order to point to the correct address,
+; for some reasons I ignore, simply using ds=0x07E0 does not work in that case...
+org 0x7E00
 
 ; NASM directive indicating how the code should be generated; the bootloader
 ; is the one of the first program executed by the machine; at this moment, the
