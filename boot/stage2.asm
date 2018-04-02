@@ -8,10 +8,9 @@ org 0x7E00
 ; machine is executing real mode (16 bits) mode (in 80x86 architecture)
 bits 16
 
-; Loads the Global Descriptor Table (null, code and data descriptors)
-; every descriptor is 64 bits long
-
-mov bx, 0x07e0
+; as we used "org 0x7E00", we can simply set the data segment to 0
+; in order to prevent any offset to be added to absolute addresses
+mov bx, 0x0
 mov ds, bx
 
 jmp start
