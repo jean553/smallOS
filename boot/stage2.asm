@@ -1,14 +1,16 @@
-org 0x0
+; lgdt [gdt] needs an offset to be set: in fact, this program is loaded at 0x7E00,
+; and we need to add this offset to [gdt] in order to point to the correct address,
+; for some reasons I ignore, simply using ds=0x07E0 does not work in that case...
+org 0x7E00
 
 ; NASM directive indicating how the code should be generated; the bootloader
 ; is the one of the first program executed by the machine; at this moment, the
 ; machine is executing real mode (16 bits) mode (in 80x86 architecture)
 bits 16
 
-; Loads the Global Descriptor Table (null, code and data descriptors)
-; every descriptor is 64 bits long
-
-mov bx, 0x07e0
+; as we used "org 0x7E00", we can simply set the data segment to 0
+; in order to prevent any offset to be added to absolute addresses
+mov bx, 0x0
 mov ds, bx
 
 jmp start
@@ -69,8 +71,8 @@ db 0
 ; 1: code descriptor
 ; 1: code/data descriptor, not system descriptor
 ; 00: the segments are executed at ring 0
-; 0: the segments do not use virtual memory
-db 00011010b
+; 1: the segment uses virtual memory
+db 10011010b
 
 ; 1111: segment limit bits 0-15 is 0xFFFF, complete segment limit address is now 0xFFFFF
 ; 00: OS reserved, set to 0
@@ -124,12 +126,6 @@ start:
     ; it is mandatory to clear every BIOS interrupt before loading GDT
     cli
 
-    ; switch into protected mode (32 bits)
-    mov eax, cr0
-    or eax, 0000000000000001b   ; only update the first bit of cr0 to 1 to switch to pmode
-    mov cr0, eax
-    ; the system is now in 32 bits protected mode
-
     ; load the GDT into GDTR register
     lgdt [gdt]
 
@@ -150,7 +146,20 @@ start:
     mov al, 00000010b
     out 0x92, al
 
-    mov bx, 0x8
-    mov es, bx
+    ; switch into protected mode (32 bits)
+    cli
+    mov eax, cr0
+    or eax, 0000000000000001b   ; only update the first bit of cr0 to 1 to switch to pmode
+    mov cr0, eax
+    ; the system is now in 32 bits protected mode
+
+    ; the code segment is at the offset 0x8 of the GDT
+    jmp 0x8:end
+
+bits 32
+
+end:
+
+    ; the processor is now in 32 bits protected mode
 
     hlt
