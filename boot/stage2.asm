@@ -71,8 +71,8 @@ db 0
 ; 1: code descriptor
 ; 1: code/data descriptor, not system descriptor
 ; 00: the segments are executed at ring 0
-; 0: the segments do not use virtual memory
-db 00011010b
+; 1: the segment uses virtual memory
+db 10011010b
 
 ; 1111: segment limit bits 0-15 is 0xFFFF, complete segment limit address is now 0xFFFFF
 ; 00: OS reserved, set to 0
