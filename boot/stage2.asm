@@ -126,12 +126,6 @@ start:
     ; it is mandatory to clear every BIOS interrupt before loading GDT
     cli
 
-    ; switch into protected mode (32 bits)
-    mov eax, cr0
-    or eax, 0000000000000001b   ; only update the first bit of cr0 to 1 to switch to pmode
-    mov cr0, eax
-    ; the system is now in 32 bits protected mode
-
     ; load the GDT into GDTR register
     lgdt [gdt]
 
@@ -152,7 +146,20 @@ start:
     mov al, 00000010b
     out 0x92, al
 
-    mov bx, 0x8
-    mov es, bx
+    ; switch into protected mode (32 bits)
+    cli
+    mov eax, cr0
+    or eax, 0000000000000001b   ; only update the first bit of cr0 to 1 to switch to pmode
+    mov cr0, eax
+    ; the system is now in 32 bits protected mode
+
+    ; the code segment is at the offset 0x8 of the GDT
+    jmp 0x8:end
+
+bits 32
+
+end:
+
+    ; the processor is now in 32 bits protected mode
 
     hlt
