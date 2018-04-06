@@ -128,9 +128,10 @@ load_fat:
 
 read_sectors:
 
-    ; bx and cx are used for CHS calculation, but they also contain
+    ; bx, cx and dx are used for CHS calculation, but they also contain
     ; the number of sectors to read and the memory location to fill
     ; used after the computation, so we push them on the stack
+    push dx
     push bx
     push cx
 
@@ -178,6 +179,8 @@ read_sectors:
                                     ; (so we can simply ignore dh content and replace it by dl)
     mov dl, 0x80                    ; unit to use (0x80 for hard drive, less for floppy)
     int 0x13
+
+    pop dx                          ; dx has been pushed previously
     ret
 
 ;-----------------------------------------------------------------------------
@@ -273,8 +276,8 @@ load_file:
         ; (the root directory is loaded at 0xA000:0x0000)
         mov bx, 0x0A00
         mov ds, bx
-        mov ax, word [di]
-        ; ax now contains the file first sector position on disk
+        mov dx, word [di]
+        ; dx now contains the file first sector position on disk
 
         ; get back the current data segment from the stack
         pop ds
@@ -292,9 +295,23 @@ load_file:
         ; from the disk. Instead, it should iterate over all the sectors of the file
         ; until the file is fully loaded.
 
+        ; keep track of the file first sector index (from the beginning of the data area index),
+        ; as we need to apply some calculations on this value in order to find the sector
+        ; to read from the beginning of the disk
+        mov ax, dx
+
         ; the FAT contains some initial sectors that are not considered when loading a file
         ; when iterating over a file cluster (there are three initial FAT entries to ignore)
         sub ax, word [fat_reserved_entries]  ; remove the three initial FAT entries
+
+        ; we want to find the absolute sector to read, as one cluster contains four sectors,
+        ; then we have to multiply the cluster index by the sectors amount per cluster
+
+        ; IMPORTANT: mul stores its result in dx:ax, we ignore dx, so this code does
+        ; not work when high values are computed...
+        push dx                             ; dx is modified by mul and we want to keep its value
+        mul word [sectors_per_cluster]      ; multiply ax and stores the result in dx:ax
+        pop dx                              ; get back dx (cluster index)
 
         ; the data area starts at the sector 80, so it is necessary to add 80
         ; to the cluster value as this value is relative to the beginning of the data area
@@ -306,4 +323,30 @@ load_file:
         mov cx, word [sectors_per_cluster]
 
         call read_sectors
+
+        ; check if others clusters have to be loaded,
+        ; the FAT content must be read
+
+        push ds     ; temporary change the data segment in order to read the FAT
+
+        ; the FAT is loaded at 0x0E800,
+        ; right after the root directory (0x0E80:0x0000)
+        mov bx, 0x0E80
+        mov ds, bx
+
+        ; get back the current cluster index and find its value from the FAT
+        ; (in order to know if the file is finished or if another cluster
+        ; has to be loaded)
+        mov ax, dx
+        mov bx, 2
+        mul bx
+        mov bx, ax
+        mov dx, word [bx]
+
+        pop ds      ; get back previous data segment
+
+        ; check if the cluster is the end of the file
+        cmp dx, 0xFFFF
+        jne .LOAD_FILE
+
         ret
