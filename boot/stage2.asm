@@ -187,6 +187,16 @@ end:
 
     ; the processor is now in 32 bits protected mode
 
+    ; ensure the data segment is equal to 0x10, data selector offset of the GDT
+    mov bx, 0x10
+    mov ds, bx
+
+    ; reset the stack and forget all the data previously stacked,
+    ; start the stack at the address 0x9FFF0,
+    ; the stack stores data from 0x9FFF0 toward lower addresses (no minimum)
+    mov ss, bx
+    mov esp, 0x9FFF0
+
     ; TODO: the content of the kernel should be copied
     ; into another memory area as we can now use 32 bits long addresses
 

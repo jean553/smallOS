@@ -13,10 +13,11 @@ A very basic OS for self-learning purposes.
     * [Bootsector](#bootsector)
     * [Stage2](#stage2)
     * [Global Descriptor Table](#global-descriptor-table)
+    * [Stage3](#stage3)
 
 ## Tasks in progress
 
-* load a very basic kernel written in Assembly (in order to find the way to load it),
+* copy the kernel from 0x8600 to 0x100000,
 * replace this assembly kernel by a Rust kernel (that actually does the same thing)
 
 ## Installation
@@ -199,9 +200,11 @@ It is loaded by the boot sector at 0x07E00, right after the boot sector.
 ```
 
 Stage2:
- * loads the global descriptor table (GDT)
+ * loads the kernel (check `Kernel loading` section below) before switching into protected mode as it reads the disk using BIOS interrupts that are not usuable when the processor uses the 32 bits mode,
+ * loads the global descriptor table (check `Global descriptor Table` section below)
  * enables A20 to access up to 32 lines address bus
  * switches to protected mode (32 bits)
+ * jumps to stage3 (check `Stage3` section below)
 
 ### Global Descriptor Table
 
@@ -216,3 +219,61 @@ Each descriptor is 64 bits long. Our GDT contains three descriptors:
 According to our current GDT, the whole memory can be executed
 and the whole memory can be used to store data
 (from address 0x0 to 0xFFFFFFFF, 4Gbytes).
+
+### Stage3
+
+Stage3 is the latest section of the stage2 program.
+It is written using 32 bits assembly and is executed after the protected mode switch.
+
+When this section is executed, the GDT is loaded, the processor uses 32 bits addresses.
+Furthermore, up to 4 Gbytes of memory can be used.
+
+The goal of stage3 is to:
+ * load a "large" stack (we load it where there are a lot of free memory, from address 0x9FFF0),
+ * copy the kernel at address 0x100000 (the kernel has not been loaded directly there as the processor was using real mode when the kernel has been loaded)
+
+```
+         +----------------------+0x0000
+         |                      |
+         |         BIOS         |
+         |                      |
+         +----------------------+0x04FF - 0x0500
+         |        stack         |
+         +----------------------+0x09FF - 0x0A00
+         |                      |
+         |        Free          |
+         |                      |
+         +----------------------+0x7BFF - 0x7C00
+         |       boot.bin       |
+         +----------------------+0x7DFF - 0x7E00
+         |                      |
+         |       stage2.bin     |
+         |                      |
+         +----------------------+0x85FF - 0x8600
+         |                      |
+         |                      |
+         |                      |
+         |         Free         |
+         |                      |
+         |                      |
+         +----------------------+ ... <- BEWARE: everything before this address can be ignored,
+         |                      |        except BIOS from 0x00000 to 0x004FF and
+         |        Stack         |        the GDT loaded into the stage2 area
+         |                      |
+         +----------------------+0x9FFEF - 0x9FFF0
+         |                      |
+         |         Free         |
+         |                      |
+         +----------------------+0x9FFFF - OxA0000
+         |         Used         |
+         |                      |
+         +----------------------+0xFFFFF - 0x100000
+         |   Expected kernel    |
+         |       location       |
+         |                      |
+         |         ...          |
+         |                      |
+         |                      |
+         +----------------------+0xFFFFFFFF
+
+```
