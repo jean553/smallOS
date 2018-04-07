@@ -16,7 +16,8 @@ A very basic OS for self-learning purposes.
 
 ## Tasks in progress
 
-* load GDT
+* load a very basic kernel written in Assembly (in order to find the way to load it),
+* replace this assembly kernel by a Rust kernel (that actually does the same thing)
 
 ## Installation
 
@@ -174,8 +175,10 @@ It is loaded by the boot sector at 0x07E00, right after the boot sector.
          +----------------------+0x7BFF - 0x7C00
          |       boot.bin       |
          +----------------------+0x7DFF - 0x7E00
+         |                      |
          |       stage2.bin     |
-         +----------------------+0x7FFF - 0x8000
+         |                      |
+         +----------------------+0x85FF - 0x8600
          |                      |
          |                      |
          |                      |
@@ -191,8 +194,8 @@ It is loaded by the boot sector at 0x07E00, right after the boot sector.
 ```
 
 Stage2:
- * enables A20 to access up to 32 lines address bus
  * loads the global descriptor table (GDT)
+ * enables A20 to access up to 32 lines address bus
  * switches to protected mode (32 bits)
 
 ### Global Descriptor Table
