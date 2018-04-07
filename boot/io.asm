@@ -186,11 +186,11 @@ read_sectors:
 ;-----------------------------------------------------------------------------
 ; load a given file into memory, the name of the file to search from the root
 ; directory is located at DS:SI, the location where the file has to be written
-; into the memory is ES:DI.
+; into the memory is ES:BX.
 ;-----------------------------------------------------------------------------
 ; DS: data segment of the file name to find
 ; SI: the address of the string of the file name to find (DS:SI)
-; ES:DI: location where the whole file must be loaded
+; ES:BX: location where the whole file must be loaded
 ;-----------------------------------------------------------------------------
 
 load_file:
@@ -328,6 +328,8 @@ load_file:
         ; the FAT content must be read
 
         push ds     ; temporary change the data segment in order to read the FAT
+        push bx     ; bx contains the offset where to load the file,
+                    ; and its content is going to be modified in the following computations
 
         ; the FAT is loaded at 0x0E800,
         ; right after the root directory (0x0E80:0x0000)
@@ -343,7 +345,13 @@ load_file:
         mov bx, ax
         mov dx, word [bx]
 
-        pop ds      ; get back previous data segment
+        pop bx
+        pop ds      ; get back previous data segment and loading offset
+
+        ; one cluster has been loaded and bx contains the offset to the beginning of that cluster,
+        ; every cluster is four sectors long (2048 bytes), so if another cluster has to be loaded
+        ; for the current file, then it has to be loaded 2048 bytes after
+        add bx, 2048
 
         ; check if the cluster is the end of the file
         cmp dx, 0xFFFF
