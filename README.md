@@ -53,6 +53,9 @@ instructions and BIOS interrupts
 
 The used file system is FAT16 with 512 bytes per sector.
 
+Files are composed of one or many clusters on disk.
+One cluster represents four continuous sectors on disk.
+
 The file system contains the following components:
  * the boot sector (sector 0),
 (reserved sectors from sector 1 to sector 3)
