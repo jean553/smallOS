@@ -19,7 +19,7 @@ jmp start
 ; Other variables
 ; ----------------------------------------------------------------------------
 
-kernel              db "KERNEL  BIN"
+stage3              db "STAGE3  BIN"
 
 ; -----------------------------------------------------------------
 ; Inclusions
@@ -123,10 +123,21 @@ gdt:
 
 start:
 
+    ; reset the stack, forget all the remaining stacked data,
+    ; the location of the stack stays the same as before (during boot)
+
+    ; starts the stack at 0x00A00 and finishes at 0x00500
+    ; (data is pushed from the highest address to the lowest one)
+    mov ax, 0x0050
+    mov ss, ax              ; the stack ends at 0x0500
+    mov sp, 0x0500          ; the stack begins at 0x0A00 (0x0500 + 0x0500)
+
     ; it is mandatory to clear every BIOS interrupt before loading GDT
     cli
 
     ; load the GDT into GDTR register
+    ; takes the value at 0x7E00:[gdt]
+    ; NOTE: correct value into `org` is required by this line!
     lgdt [gdt]
 
     ; in real mode, for backward compatibility reasons, the address bus has 20 bits lines
