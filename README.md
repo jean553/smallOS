@@ -172,6 +172,8 @@ It is loaded by the boot sector at 0x07E00, right after the boot sector.
          |         BIOS         |
          |                      |
          +----------------------+0x04FF - 0x0500
+         |        stack         |
+         +----------------------+0x09FF - 0x0A00
          |                      |
          |        Free          |
          |                      |
