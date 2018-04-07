@@ -18,6 +18,7 @@ mount: force_look
 
 copy: force_look
 	sudo cp boot/stage2.bin /mnt/STAGE2.BIN
+	sudo cp boot/stage3.bin /mnt/STAGE3.BIN
 
 boot_copy: force_look
 	dd if=boot/boot.bin of=hd.img count=1 conv=notrunc
