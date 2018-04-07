@@ -132,6 +132,20 @@ start:
     mov ss, ax              ; the stack ends at 0x0500
     mov sp, 0x0500          ; the stack begins at 0x0A00 (0x0500 + 0x0500)
 
+    ; load stage3 before switching into protected mode
+    ; (has to be done before as we use BIOS interrupts for now)
+    mov si, stage3
+
+    ; stage3 will be loaded right after stage2
+    ; stage2 is loaded at 0x07E00, it uses 4 sectors of 512 bytes,
+    ; so we load stage3 2048 bytes after (4 * 512),
+    ; so stage3 is loaded at 0x08600 (0x0860:0x0000)
+    mov bx, 0x0860
+    mov es, bx
+    xor bx, bx
+
+    call load_file
+
     ; it is mandatory to clear every BIOS interrupt before loading GDT
     cli
 
@@ -173,4 +187,8 @@ end:
 
     ; the processor is now in 32 bits protected mode
 
-    hlt
+    ; TODO: the content of the kernel should be copied
+    ; into another memory area as we can now use 32 bits long addresses
+
+    ; execute the kernel (loaded in 0x08600)
+    jmp 0x8:0x8600
