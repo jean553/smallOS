@@ -268,8 +268,7 @@ The goal of stage3 is to:
          |         Used         |
          |                      |
          +----------------------+0xFFFFF - 0x100000
-         |   Expected kernel    |
-         |       location       |
+         |        Kernel        |
          |                      |
          |         ...          |
          |                      |
