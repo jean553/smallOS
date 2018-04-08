@@ -15,6 +15,8 @@ A very basic OS for self-learning purposes.
     * [Stage2](#stage2)
     * [Global Descriptor Table](#global-descriptor-table)
     * [Stage3](#stage3)
+- [Rust integration](#rust-integration)
+    * [32 bits compilation](#32-bits-compilation)
 
 ## Tasks in progress
 
@@ -37,9 +39,14 @@ make
 
 The command runs a makefile that handle:
  * assembly code compilation,
+ * Rust code compilation,
  * virtual hard drive creation,
  * files and sectors copy to the hard drive,
  * launch Bochs for emulation,
+
+NOTE: be sure you have the correct Rust toolchain installted,
+check `Rust integration / 32 bits compilation` section.
+The expected toolchain is `nightly-i686-unknown-linux-gnu`.
 
 ## Destroy the project
 
@@ -283,3 +290,23 @@ The goal of stage3 is to:
          +----------------------+0xFFFFFFFF
 
 ```
+
+## Rust integration
+
+For now, Rust is used to write a static library, linked to the kernel assembly code
+(ie, as this is a static library, it is copied into the kernel code when called).
+The name of the kernel file is `kernel.asm` (compiled as `kernel.o` and `kernel.bin`
+after the Rust library linkage process).
+
+### 32 bits compilation
+
+No matter what architecture you are using, smallOS is a 32 bits operating system.
+So, the Rust code must be compiled for 32 bits architecture.
+
+This can be achieved by installing the 32 bits toolchain:
+
+```sh
+rustup default nightly-i686-unknown-linux-gnu
+```
+
+Note that Rust nightly is installed, in order to get the latest features of Rust.
