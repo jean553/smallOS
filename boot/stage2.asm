@@ -19,7 +19,7 @@ jmp start
 ; Other variables
 ; ----------------------------------------------------------------------------
 
-stage3              db "STAGE3  BIN"
+kernel              db "KERNEL  BIN"
 
 ; -----------------------------------------------------------------
 ; Inclusions
@@ -132,14 +132,14 @@ start:
     mov ss, ax              ; the stack ends at 0x0500
     mov sp, 0x0500          ; the stack begins at 0x0A00 (0x0500 + 0x0500)
 
-    ; load stage3 before switching into protected mode
+    ; load the kernel before switching into protected mode
     ; (has to be done before as we use BIOS interrupts for now)
-    mov si, stage3
+    mov si, kernel
 
-    ; stage3 will be loaded right after stage2
+    ; the kernel will be loaded right after stage2
     ; stage2 is loaded at 0x07E00, it uses 4 sectors of 512 bytes,
-    ; so we load stage3 2048 bytes after (4 * 512),
-    ; so stage3 is loaded at 0x08600 (0x0860:0x0000)
+    ; so we load the kernel 2048 bytes after (4 * 512),
+    ; so the kernel is loaded at 0x08600 (0x0860:0x0000)
     mov bx, 0x0860
     mov es, bx
     xor bx, bx
