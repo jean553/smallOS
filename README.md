@@ -25,7 +25,7 @@ A very basic OS for self-learning purposes.
         - Overwrite mandatory features of any Rust program
         - Create a custom target
         - Xargo for custom target compilation
-    * [Make assembly programs call Rust](#make-assembly-programs-call-Rust)
+    * [Make assembly programs call Rust](#make-assembly-programs-call-rust)
 
 ## Tasks in progress
 
