@@ -6,7 +6,8 @@ A very basic OS for self-learning purposes.
 
 - [Tasks in progress](#tasks-in-progress)
 - [Installation](#installation)
-- [Make and run](#make-and-run)
+- [Build the project](#build-the-project)
+- [Destroy the project](#destroy-the-project)
 - [References](#references)
 - [Hard drive overview](#hard-drive-overview)
 - [Starting steps](#starting-steps)
@@ -24,13 +25,13 @@ A very basic OS for self-learning purposes.
 
 Bochs and Nasm are required to install and run smallOS.
 
-```
+```sh
 apt-get install bochs nasm dosfstools
 ```
 
-## Make and run
+## Build the project
 
-```
+```sh
 make
 ```
 
@@ -39,6 +40,12 @@ The command runs a makefile that handle:
  * virtual hard drive creation,
  * files and sectors copy to the hard drive,
  * launch Bochs for emulation,
+
+## Destroy the project
+
+```sh
+make clean
+```
 
 ## References
 
