@@ -377,6 +377,7 @@ Our Rust code is compiled without any operating system specificity.
 We have to considere the following points:
  * do not include/link/call any standard library at all,
  * make Rust code callable from other languages (disable name mangling and use `extern` functions),
+ * overwrite mandatory features of the standard library
 
 #### Ignore any standard library
 
@@ -405,4 +406,31 @@ might be called from the outside of the crate, by another program
 ```rust
 #[no_mangle]
 pub extern fn rust_main() ...
+```
+
+#### Overwrite mandatory features of any Rust program
+
+Some Rust features are defined into libraries (usually the standard library),
+and not into the language itself.
+
+Not using any standard library requires us to overwrite these features.
+
+For now, these two features are `eh_personality` and `panic_fmt` functions.
+Without diving into hard details, these functions define what the program
+does when error occured, or when `panic!` are raised.
+
+We leave these functions empty for now, smallOS does nothing in case of errors.
+
+```rust
+#![feature(lang_items)]
+
+...
+
+#[lang = "eh_personality"] #[no_mangle]
+pub extern fn eh_personality() {
+}
+
+#[lang = "panic_fmt"] #[no_mangle]
+pub extern fn panic_fmt() {
+}
 ```
