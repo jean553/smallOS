@@ -10,7 +10,7 @@ kernel.o: kernel.o
 	$(ASM) -f elf kernel.asm -o kernel.o
 
 kernel.bin: kernel.bin
-	ld --gc-section -m elf_i386 -s -o kernel.bin kernel.o target/smallos-target/debug/libsmallos.a
+	ld -m elf_i386 -o kernel.bin kernel.o target/smallos-target/debug/libsmallos.a
 
 all: kernel kernel.o kernel.bin
 
