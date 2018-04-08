@@ -25,6 +25,7 @@ A very basic OS for self-learning purposes.
         - Overwrite mandatory features of any Rust program
         - Create a custom target
         - Xargo for custom target compilation
+    * [Make assembly programs call Rust](#make-assembly-programs-call-Rust)
 
 ## Tasks in progress
 
@@ -490,4 +491,32 @@ Simply make sure to install `xargo` (that requires the Rust source code to be in
 rustup component add rust-src
 cargo install xargo
 RUST_TARGET_PATH=$(pwd) xargo build --target smallos-target
+```
+
+### Make assembly programs call Rust
+
+The kernel program is `kernel.asm`. It is "statically" linked with a Rust library.
+In order for this link process to success, `ld` requires the manipulated binary objects
+to have a known valid format. As the OS is a 32 bits OS, we use the ELF format.
+
+So our kernel assembly code must be compatible with ELF:
+
+```asm
+global _start
+
+section .text
+bits 32
+
+_start:
+    ...
+```
+
+A valid ELF binary has a global declared symbol `_start` and a `.text` section.
+This is required for the linking process to succeed.
+
+The ELF format must be specified when compiling and linking:
+
+```sh
+nasm -f elf kernel.asm -o kernel.o
+ld -m elf_i386 -o kernel.bin kernel.o target/smallos-target/debug/libsmallos.a
 ```
