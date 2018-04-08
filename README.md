@@ -20,6 +20,11 @@ A very basic OS for self-learning purposes.
     * [Static library crate type](#static-library-crate-type)
     * [Use rlibc](#use-rlibc)
     * [Rust code specificities](#rust-code-specificities)
+        - Ignore the standard library
+        - Disable name mangling and use extern functions
+        - Overwrite mandatory features of any Rust program
+        - Create a custom target
+        - Xargo for custom target compilation
 
 ## Tasks in progress
 
@@ -66,6 +71,7 @@ about OS development from scratch
 instructions and BIOS interrupts
  * http://www.maverick-os.dk/FileSystemFormats/FAT16_FileSystem.html - the FAT16 file system specifications
  * http://wiki.osdev.org/Main_Page - a lot of resources and short tutorials there...
+ * https://os.phil-opp.com/ - tutorial to write an OS using Rust
 
 ## Hard drive overview
 
@@ -380,7 +386,7 @@ We have to considere the following points:
  * overwrite mandatory features of the standard library
  * do not compile our library with any system specificy (target specificities)
 
-#### Ignore any standard library
+#### Ignore the standard library
 
 By default, Rust includes/links/calls standard library objects from the written code,
 depending on which system/architecture (and also with which toolchain) the program
