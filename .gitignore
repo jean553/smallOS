@@ -1,5 +1,6 @@
 boot/*.bin
-boot/*.o
+kernel/*.bin
+kernel/*.o
 kernel/target
 kernel/Cargo.lock
 *.img
