@@ -19,6 +19,7 @@ A very basic OS for self-learning purposes.
     * [32 bits compilation](#32-bits-compilation)
     * [Static library crate type](#static-library-crate-type)
     * [Use rlibc](#use-rlibc)
+    * [Rust code specificities](#rust-code-specificities)
 
 ## Tasks in progress
 
@@ -368,4 +369,40 @@ The whole `rlibc` content can be copied into our Rust library:
 
 ```rust
 extern crate rlibc;
+```
+
+### Rust code specificities
+
+Our Rust code is compiled without any operating system specificity.
+We have to considere the following points:
+ * do not include/link/call any standard library at all,
+ * make Rust code callable from other languages (disable name mangling and use `extern` functions),
+
+#### Ignore any standard library
+
+By default, Rust includes/links/calls standard library objects from the written code,
+depending on which system/architecture (and also with which toolchain) the program
+is compiled, linked and executed.
+
+We don't want all these specificities. In order to cancel standard library inclusion,
+we simply add the `#![no_std]` argument to our code:
+
+```rust
+#![no_std]
+```
+
+#### Disable name mangling and use extern functions
+
+Our Rust functions will be called from other languages (assembly for example),
+so we don't want the object names to have a specific Rust mangling.
+
+We use `#[no_mangle]` before every function definition.
+
+Furthermore, we want to indicate to Rust that the defined function
+might be called from the outside of the crate, by another program
+(our assembly kernel), so we define the functions with the `extern` keyword.
+
+```rust
+#[no_mangle]
+pub extern fn rust_main() ...
 ```
