@@ -5,7 +5,7 @@
 extern crate rlibc;
 
 #[no_mangle]
-pub extern fn rust_main() {
+pub extern fn print_os_version() {
 
     /* display "smallOS" message at the top left corner */
     unsafe {
@@ -17,17 +17,22 @@ pub extern fn rust_main() {
         *((0xB800A) as *mut u8) = 'O' as u8;
         *((0xB800C) as *mut u8) = 'S' as u8;
     };
+}
+
+#[no_mangle]
+pub extern fn clear_screen() {
 
     /* ensure every character on the screen
        is displayed in white (with intensity) */
 
-    const START_OFFSET: u32 = 0xB8001;
+    const START_OFFSET: u32 = 0xB8000;
     let mut offset = START_OFFSET;
 
     /* screen text resolution is 80 x 25,
        so there are 2000 items to set,
-       0xB8001 + 2000 = 0xB87D1 */
-    const END_OFFSET: u32 = 0xB87D1;
+       one time for the character, one time for the color,
+       0xB8001 + (2000 * 2) = 0xB8FA0 */
+    const END_OFFSET: u32 = 0xB8FA0;
 
     /* every screen item should be written
        with white foreground, black background
@@ -35,8 +40,10 @@ pub extern fn rust_main() {
     const ITEM_COLOR: u8 = 0b00001111;
 
     while offset <= END_OFFSET {
+        unsafe { *((offset) as *mut u8) = ' ' as u8 };
+        offset += 1;
         unsafe { *((offset) as *mut u8) = ITEM_COLOR };
-        offset += 2;
+        offset += 1;
     }
 }
 
