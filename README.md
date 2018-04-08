@@ -17,6 +17,7 @@ A very basic OS for self-learning purposes.
     * [Stage3](#stage3)
 - [Rust integration](#rust-integration)
     * [32 bits compilation](#32-bits-compilation)
+    * [Static library crate type](#static-library-crate-type)
 
 ## Tasks in progress
 
@@ -310,3 +311,16 @@ rustup default nightly-i686-unknown-linux-gnu
 ```
 
 Note that Rust nightly is installed, in order to get the latest features of Rust.
+
+### Static library crate type
+
+We set the library crate type to `staticlib` into `Cargo.toml`:
+
+```
+[lib]
+crate-type = ["staticlib"]
+```
+
+We use this option for two reasons:
+ * when linking the library with the assembly kernel, the whole library content will be copied into the kernel code (no dynamic link at runtime, smallOS is not able to handle it for now),
+ * all dependencies of the library will be copied into the library itself (no dynamic link again)
