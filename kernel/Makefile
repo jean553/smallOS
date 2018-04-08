@@ -4,13 +4,13 @@ default: all
 
 kernel:
 	cargo clean;
-	RUST_TARGET_PATH=$(shell pwd) xargo build --target smallos-target
+	RUST_TARGET_PATH=$(shell pwd) xargo build --release --target smallos-target
 
 kernel.o: kernel.o
 	$(ASM) -f elf kernel.asm -o kernel.o
 
 kernel.bin: kernel.bin
-	ld -m elf_i386 -o kernel.bin kernel.o target/smallos-target/debug/libsmallos.a
+	ld --gc-sections -m elf_i386 -o kernel.bin kernel.o target/smallos-target/release/libsmallos.a
 
 all: kernel kernel.o kernel.bin
 
