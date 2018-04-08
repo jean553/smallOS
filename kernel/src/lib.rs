@@ -4,10 +4,10 @@
 
 extern crate rlibc;
 
+/// Print "smallOS" at the top left corner of the screen.
 #[no_mangle]
 pub extern fn print_os_version() {
 
-    /* display "smallOS" message at the top left corner */
     unsafe {
         *((0xB8000) as *mut u8) = 's' as u8;
         *((0xB8002) as *mut u8) = 'm' as u8;
@@ -19,6 +19,7 @@ pub extern fn print_os_version() {
     };
 }
 
+/// Clear the whole screen content and set it to write white characters on black background. The video mode must be text, 80 x 25 characters with 16 colors.
 #[no_mangle]
 pub extern fn clear_screen() {
 
