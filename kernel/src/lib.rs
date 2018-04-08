@@ -7,22 +7,36 @@ extern crate rlibc;
 #[no_mangle]
 pub extern fn rust_main() {
 
-    /* the first character is written in white color with intensity */
-    let mut index = 0xb8000;
-    let mut buffer_ptr = (index) as *mut u8;
+    /* display "smallOS" message at the top left corner */
+    unsafe {
+        *((0xB8000) as *mut u8) = 's' as u8;
+        *((0xB8002) as *mut u8) = 'm' as u8;
+        *((0xB8004) as *mut u8) = 'a' as u8;
+        *((0xB8006) as *mut u8) = 'l' as u8;
+        *((0xB8008) as *mut u8) = 'l' as u8;
+        *((0xB800A) as *mut u8) = 'O' as u8;
+        *((0xB800C) as *mut u8) = 'S' as u8;
+    };
 
-    while index < 0xb80A0 {
+    /* ensure every character on the screen
+       is displayed in white (with intensity) */
 
-        unsafe {
-            buffer_ptr = (index) as *mut u8;
-            *buffer_ptr = ' ' as u8;
+    const START_OFFSET: u32 = 0xB8001;
+    let mut offset = START_OFFSET;
 
-            index += 1;
-            buffer_ptr = (index) as *mut u8;
-            *buffer_ptr = 0b00001111u8;
+    /* screen text resolution is 80 x 25,
+       so there are 2000 items to set,
+       0xB8001 + 2000 = 0xB87D1 */
+    const END_OFFSET: u32 = 0xB87D1;
 
-            index += 1;
-        };
+    /* every screen item should be written
+       with white foreground, black background
+       and foreground intensity */
+    const ITEM_COLOR: u8 = 0b00001111;
+
+    while offset <= END_OFFSET {
+        unsafe { *((offset) as *mut u8) = ITEM_COLOR };
+        offset += 2;
     }
 }
 
