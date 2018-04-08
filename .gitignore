@@ -1,3 +1,6 @@
 boot/*.bin
+boot/*.o
+kernel/target
+kernel/Cargo.lock
 *.img
 *.swp
