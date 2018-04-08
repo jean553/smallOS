@@ -39,4 +39,6 @@ force_look:
 	true
 
 clean:
-	cd boot; make clean;
+	cd boot; make clean; cd ..;
+	cd kernel; make clean; cd ..;
+	rm hd.img

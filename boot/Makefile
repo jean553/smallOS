@@ -12,4 +12,4 @@ stage2.bin: stage2.asm
 all: boot.bin stage2.bin
 
 clean: 
-	rm -f boot.bin
+	rm boot.bin stage2.bin
