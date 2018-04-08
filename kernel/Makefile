@@ -3,6 +3,7 @@ ASM=nasm
 default: all
 
 kernel:
+	cargo clean;
 	RUST_TARGET_PATH=$(shell pwd) xargo build --target smallos-target
 
 kernel.o: kernel.o
