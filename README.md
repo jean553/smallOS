@@ -378,6 +378,7 @@ We have to considere the following points:
  * do not include/link/call any standard library at all,
  * make Rust code callable from other languages (disable name mangling and use `extern` functions),
  * overwrite mandatory features of the standard library
+ * do not compile our library with any system specificy (target specificities)
 
 #### Ignore any standard library
 
@@ -434,3 +435,41 @@ pub extern fn eh_personality() {
 pub extern fn panic_fmt() {
 }
 ```
+
+#### Create a target
+
+When compiling a Rust program or library, it is built using specificities of a "target".
+A target has many properties, like the system (Linux, Mac OS, Windows...),
+the architecture (32 bits, 64 bits), the used ABI, and many others...
+
+There are many predefined targets, for example `x86_64-unknown-linux-gnu`, `x86_64-pc-windows-msvc`...
+
+We compile for a brand new operating system, so we have to create a specific target.
+
+Target can be defined into JSON file:
+
+```json
+{
+    "llvm-target": "i686-unknown-none",
+    "data-layout": "e-m:e-i32:32-f32:32-n8:16:32-S128-p:32:32:32",
+    "linker-flavor": "gcc",
+    "target-endian": "little",
+    "target-pointer-width": "32",
+    "target-c-int-width": "32",
+    "arch": "x86",
+    "os": "none",
+    "disable-redzone": true,
+    "features": "-mmx,-sse,+soft-float",
+    "panic-strategy": "abort"
+}
+```
+
+Our target has the following properties:
+ * `llvm-target`: written with the format `architecture-system-abi`, our system is a 32 bits system, so `i686`, the OS is unknown, the ABI does not matter for now (everything about mangling is disable, assembly is compiled without any specific platform/compiler option),
+ * `data-layout`: this option is required and defines how data is organized in memory (alignment, stack size... etc...). This information is used for assembly/binary generation. We can use the same information as Linux for now.
+ * `linker-flavor`, `target-endian`, `target-pointer-width`, `target-c-int-width` - are LLVM linking options and required memory options, we keep default values from now, ensuring pointers and int size is 32 bits for our target (smallOS is a 32 bits system),
+ * `arch` - the target architecture is `x86` (Intel x86),
+ * `os` - there is no specific OS,
+ * `disable-redzone` - the redzone is an area beyond the stack pointer. The compiler can generate code that uses this redzone directly to store temporary data instead of pushing on the stack. The only use case of this redzone is limit instructions usage (push/pop). Such kind of optimization is not necessary for us, so we simply forbid the compiler to generate such code,
+ * `features` - disable MMX and SSE, that are vectorization features/instructions. We don't want to generate code with such instructions (smallOS is even not able to handle it),
+ * `panic-strategy` - we disable "unwinding" (automatic destruction of stack allocated variables when a panic! is raised), this is specific to the platform, and so not available for smallOS.
