@@ -115,6 +115,13 @@ bootloader:
     mov ss, ax              ; the stack ends at 0x0500
     mov sp, 0x0500          ; the stack begins at 0x0A00 (0x0500 + 0x0500)
 
+    ; use BIOS interrupt to set the video mode to text mode (80 x 25) with 16 colors
+    ; NOTE: this action clears the whole screen content
+    ; and put the character at the top right corner
+    mov ah, 0x00            ; the function to change the video mode is 0x00
+    mov al, 0x02            ; the 16 colors text mode 80 x 25 is number 0x02
+    int 0x10                ; call the BIOS interrupt to change the video mode
+
     ; directly jump to the instructions that resets the hard drive disk
     ; before starting to load sectors from it
     jmp reset_hd

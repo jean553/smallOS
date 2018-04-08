@@ -12,8 +12,12 @@ _start:
     mov ss, bx
     mov es, bx
 
-    ; call an external function to change characters color on screen
-    extern rust_main
-    call rust_main
+    ; clear the whole screen content
+    extern clear_screen
+    call clear_screen
+
+    ; display the OS version
+    extern print_os_version
+    call print_os_version
 
     hlt
