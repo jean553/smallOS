@@ -18,6 +18,7 @@ A very basic OS for self-learning purposes.
 - [Rust integration](#rust-integration)
     * [32 bits compilation](#32-bits-compilation)
     * [Static library crate type](#static-library-crate-type)
+    * [Use rlibc](#use-rlibc)
 
 ## Tasks in progress
 
@@ -324,3 +325,47 @@ crate-type = ["staticlib"]
 We use this option for two reasons:
  * when linking the library with the assembly kernel, the whole library content will be copied into the kernel code (no dynamic link at runtime, smallOS is not able to handle it for now),
  * all dependencies of the library will be copied into the library itself (no dynamic link again)
+
+### Use rlibc
+
+When compiling, Rust add some system function calls into the output binary:
+ * memcpy
+ * memmove
+ * memset
+ * memcmp
+
+These function calls are added in order to perform/optimize memory actions, such as:
+ * memcpy(destination, source, size): copy `size` bytes from the `source` memory address to the `destination` memory address,
+ * memmove(destination, source, size): copy `size` bytes from the `source` memory address to the `destination` memory address, does exactly the same thing than `memcpy`, except that it has a defined behaviour if `source + size` and `destination + size` overlap with each other,
+ * memset(address, value, size): copy `size` times the `value` to the `address`,
+ * memcmp(first_address, second_address, size): compares the `size` bytes from the `first_address` with the `size` bytes from the `second_address`.
+
+These functions are defined into the system C standard library. For example, on Linux,
+these functions are defined into `glibc` and they usually called from C programs
+by including `stdlib.h` or `stdio.h`.
+
+Rust programs call these functions too, by using Rust/C bindings, declared into the Rust `libc`.
+The Rust `libc` is integrated to Rust programs through the Rust static library.
+
+Rust `libc` contains bindings like `pub fn memcpy(dest: *mut c_void, src: *const c_void, n: size_t) -> *mut c_void;`, so these functions can be used into Rust code. When compiling, the Rust code
+is automatically linked with the system C library functions. For most of these links,
+they are dynamics, so the Rust program can call `memcpy` of `glibc` at runtime.
+
+Our OS has no `glibc`, so including `libc` is useless, as the bindings would not be defined anywhere.
+The solution here is to define those basic functions, without any dependence that would be specific
+to a given operating system.
+This is exactly what does the Rust `rlibc` crate. It defines these functions without any call
+to any "system specific" standart library.
+
+We can simply integrate `rlibc` like this in our Cargo file:
+
+```
+[dependencies]
+rlibc = "1.0"
+```
+
+The whole `rlibc` content can be copied into our Rust library:
+
+```rust
+extern crate rlibc;
+```
