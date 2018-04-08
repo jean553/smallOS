@@ -436,7 +436,7 @@ pub extern fn panic_fmt() {
 }
 ```
 
-#### Create a target
+#### Create a custom target
 
 When compiling a Rust program or library, it is built using specificities of a "target".
 A target has many properties, like the system (Linux, Mac OS, Windows...),
@@ -473,3 +473,15 @@ Our target has the following properties:
  * `disable-redzone` - the redzone is an area beyond the stack pointer. The compiler can generate code that uses this redzone directly to store temporary data instead of pushing on the stack. The only use case of this redzone is limit instructions usage (push/pop). Such kind of optimization is not necessary for us, so we simply forbid the compiler to generate such code,
  * `features` - disable MMX and SSE, that are vectorization features/instructions. We don't want to generate code with such instructions (smallOS is even not able to handle it),
  * `panic-strategy` - we disable "unwinding" (automatic destruction of stack allocated variables when a panic! is raised), this is specific to the platform, and so not available for smallOS.
+
+#### Xargo for custom target compilation
+
+In order to compile our program for a custom target, we have to use `xargo` instead of `cargo`.
+
+Simply make sure to install `xargo` (that requires the Rust source code to be installed on the host) and use it when building:
+
+```sh
+rustup component add rust-src
+cargo install xargo
+RUST_TARGET_PATH=$(pwd) xargo build --target smallos-target
+```
