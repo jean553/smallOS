@@ -1,0 +1,10 @@
+[package]
+name = "smallos"
+version = "0.1.0"
+author = "Jean Lelievre"
+
+[lib]
+crate-type = ["staticlib"]
+
+[dependencies]
+rlibc = "1.0"

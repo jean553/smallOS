@@ -1,5 +1,8 @@
 default: all
 
+kernel: force_look
+	cd kernel; make
+
 boot.bin: force_look
 	cd boot; make
 
@@ -30,7 +33,7 @@ unmount: force_look
 bochs: force_look
 	bochs -q
 
-all: boot.bin hd.img fat_16 mount copy unmount boot_copy bochs
+all: kernel boot.bin hd.img fat_16 mount copy unmount boot_copy bochs
 
 force_look:
 	true
