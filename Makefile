@@ -1,5 +1,8 @@
 default: all
 
+libs: force_look
+	cd libs; make
+
 kernel: force_look
 	cd kernel; make
 
@@ -33,7 +36,7 @@ unmount: force_look
 bochs: force_look
 	bochs -q
 
-all: kernel boot.bin hd.img fat_16 mount copy unmount boot_copy bochs
+all: libs kernel boot.bin hd.img fat_16 mount copy unmount boot_copy bochs
 
 force_look:
 	true
@@ -41,4 +44,5 @@ force_look:
 clean:
 	cd boot; make clean; cd ..;
 	cd kernel; make clean; cd ..;
+	cd libs; make clean; cd ..;
 	rm hd.img
