@@ -2,17 +2,13 @@ ASM=nasm
 
 default: all
 
-kernel:
-	cargo clean;
-	RUST_TARGET_PATH=$(shell pwd)/../ xargo build --release --target rust-smallos-target
-
 kernel.o: kernel.o
 	$(ASM) -f elf kernel.asm -o kernel.o
 
 kernel.bin: kernel.bin
-	ld --gc-sections -m elf_i386 -o kernel.bin kernel.o target/rust-smallos-target/release/libsmallos.a
+	ld --gc-sections -m elf_i386 -o kernel.bin kernel.o ../libs/video/target/rust-smallos-target/release/libvideo.a
 
-all: kernel kernel.o kernel.bin
+all: kernel.o kernel.bin
 
 clean:
-	rm -rf target Cargo.lock kernel.o kernel.bin
+	rm kernel.o kernel.bin
