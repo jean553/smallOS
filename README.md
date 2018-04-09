@@ -490,7 +490,7 @@ Simply make sure to install `xargo` (that requires the Rust source code to be in
 ```sh
 rustup component add rust-src
 cargo install xargo
-RUST_TARGET_PATH=$(pwd) xargo build --target smallos-target
+RUST_TARGET_PATH=$(pwd) xargo build --release --target smallos-target
 ```
 
 ### Make assembly programs call Rust
@@ -518,5 +518,5 @@ The ELF format must be specified when compiling and linking:
 
 ```sh
 nasm -f elf kernel.asm -o kernel.o
-ld -m elf_i386 -o kernel.bin kernel.o target/smallos-target/debug/libsmallos.a
+ld -m elf_i386 -o kernel.bin kernel.o target/smallos-target/release/libsmallos.a
 ```
