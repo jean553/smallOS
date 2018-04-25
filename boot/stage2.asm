@@ -115,7 +115,7 @@ gdt:
 
     ; the location that stores the value to load with LGDT
     ; must be in the format:
-    ; bits 0 - 15: GDT size
+    ; bits 0 - 15: GDT size (minus 1)
     ; bits 16 - 47: GDT starting address
 
     dw gdt_end - gdt_start - 1      ; the size of the GDT
