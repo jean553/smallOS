@@ -36,4 +36,7 @@ _start:
     extern print_os_version
     call print_os_version
 
+    ; load the Interrupt Descriptor Table
+    call loadIDT
+
     hlt
