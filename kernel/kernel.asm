@@ -3,6 +3,22 @@ global _start
 section .text
 bits 32
 
+; NOTE: the file format is ELF (but only for compilation and linking process),
+; in fact, the calling code does not know about ELF and starting points at all,
+; from this point of view, the kernel is still a raw binary file,
+; so we have to explicitly jump to the beginning
+jmp _start
+
+;-----------------------------------------------------------------------------
+; Inclusions
+;-----------------------------------------------------------------------------
+
+%include 'idt.asm'   ; IDT routines
+
+;-----------------------------------------------------------------------------
+; Kernel
+;-----------------------------------------------------------------------------
+
 _start:
 
     ; ensure data segment, stack segment and extra segment
