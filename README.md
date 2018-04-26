@@ -26,10 +26,15 @@ A very basic OS for self-learning purposes.
         - Create a custom target
         - Xargo for custom target compilation
     * [Make assembly programs call Rust](#make-assembly-programs-call-rust)
+    * [Linker script](#linker-script)
+- [Kernel initialization](#kernel-initialization)
+    * [Rust video routines calls](#rust-video-routines-calls)
+    * [IDT loading](#idt-loading)
+- [Debug](#debug)
+    * [Check GDT and IDT](#check-gdt-and-idt)
 
 ## Tasks in progress
 
-* copy the kernel from 0x8600 to 0x100000,
 * replace this assembly kernel by a Rust kernel (that actually does the same thing)
 
 ## Installation
@@ -526,3 +531,69 @@ The ELF format must be specified when compiling and linking:
 nasm -f elf kernel.asm -o kernel.o
 ld -m elf_i386 -o kernel.bin kernel.o target/smallos-target/release/libsmallos.a
 ```
+
+### Linker script
+
+The kernel is linked to its libraries using `ld`. Using this tool, it is not possible
+to specify a default offset into the kernel assembly file (for addresses generation),
+like `org 0x100000`.
+
+This default offset can be specified into the linker script of `ld`.
+This file represents how the output binary (ELF format) should be structured.
+
+In order to keep things as simple as possible, we simply set the default offset
+of the executable code section (`.text`) of the kernel to `0`. We had to overwrite
+this value as the default one for ELF file is something like `0x8048000`.
+
+Keeping this default value was an issue when reading absolute addresses content
+from the kernel code (for instance, `lidt [absolute address]` instruction).
+That's also the reason why we add 0x100000 (kernel base address) to every
+absolute address we want to access from the kernel code:
+
+```asm
+idt:
+
+...
+
+mov eax, idt
+add eax, 0x100000
+lidt [dword cs:eax]
+```
+
+The linker script is very simple, it only contains the executable section
+base address and the name of the entrypoint (`_start` symbol).
+
+## Kernel initialization
+
+The first tasks of the kernel are:
+ * call Rust library video routines to clear the screen and write a simple message,
+ * load the Interrupt Descriptor Table
+
+### Rust video routines calls
+
+The kernel calls two Rust functions defines into the `video` library.
+The first function clears the whole screen and the second one displays
+the message "smallOS" on the screen.
+
+### IDT loading
+
+The Interrupt Descriptor Table is loaded. The assembly function `loadIDT`
+is called by the kernel.
+
+The IDT only contains one entry for now, for testing purposes.
+This entry IR (Interrupt Routine) address is simply 0x00000000.
+
+## Debug
+
+### Check GDT and IDT
+
+The content of the GDT and IDT can be checked into the Bochs debugger
+using the following commands:
+
+```
+info gdt
+info idt
+```
+
+Note that if they are loaded correctly, the GDT should contain three entries
+and the IDT should contain one entry.
