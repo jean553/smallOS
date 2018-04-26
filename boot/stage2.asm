@@ -210,5 +210,8 @@ end:
                             ; we repeat the operation 512 times to copy the kernel
 
 
-    ; execute the kernel (loaded in 0x100000)
-    jmp 0x8:0x100000
+    ; execute the kernel (loaded in 0x100000);
+    ; jump 128 bytes after as the kernel binary is in ELF format,
+    ; so the real executable code starts 128 bytes (0x80) after
+    ; the beginning of the file
+    jmp 0x8:0x100080
