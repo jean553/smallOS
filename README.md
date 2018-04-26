@@ -29,7 +29,7 @@ A very basic OS for self-learning purposes.
     * [Linker script](#linker-script)
 - [Kernel initialization](#kernel-initialization)
     * [Rust video routines calls](#rust-video-routines-calls)
-    * [IDT loading](#idt-loading)
+    * [Interrupt Descriptor Table](#interrupt-descriptor-table)
 - [Debug](#debug)
     * [Check GDT and IDT](#check-gdt-and-idt)
 
@@ -575,7 +575,7 @@ The kernel calls two Rust functions defines into the `video` library.
 The first function clears the whole screen and the second one displays
 the message "smallOS" on the screen.
 
-### IDT loading
+### Interrupt Descriptor Table
 
 The Interrupt Descriptor Table is loaded. The assembly function `loadIDT`
 is called by the kernel.
