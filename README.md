@@ -27,6 +27,11 @@ A very basic OS for self-learning purposes.
         - Xargo for custom target compilation
     * [Make assembly programs call Rust](#make-assembly-programs-call-rust)
     * [Linker script](#linker-script)
+- [Kernel initialization](#kernel-initialization)
+    * [Rust video routines calls](#rust-video-routines-calls)
+    * [IDT loading](#idt-loading)
+- [Debug](#debug)
+    * [Check GDT and IDT](#check-gdt-and-idt)
 
 ## Tasks in progress
 
@@ -557,3 +562,38 @@ lidt [dword cs:eax]
 
 The linker script is very simple, it only contains the executable section
 base address and the name of the entrypoint (`_start` symbol).
+
+## Kernel initialization
+
+The first tasks of the kernel are:
+ * call Rust library video routines to clear the screen and write a simple message,
+ * load the Interrupt Descriptor Table
+
+### Rust video routines calls
+
+The kernel calls two Rust functions defines into the `video` library.
+The first function clears the whole screen and the second one displays
+the message "smallOS" on the screen.
+
+### IDT loading
+
+The Interrupt Descriptor Table is loaded. The assembly function `loadIDT`
+is called by the kernel.
+
+The IDT only contains one entry for now, for testing purposes.
+This entry IR (Interrupt Routine) address is simply 0x00000000.
+
+## Debug
+
+### Check GDT and IDT
+
+The content of the GDT and IDT can be checked into the Bochs debugger
+using the following commands:
+
+```
+info gdt
+info idt
+```
+
+Note that if they are loaded correctly, the GDT should contain three entries
+and the IDT should contain one entry.
