@@ -49,12 +49,15 @@ idt:
 ;-----------------------------------------------------------------------------
 loadIDT:
 
-    ; load the IDT (set its location for future access)
+    ; calculate the actual address of the 'idt' label in order to use LIDT
 
-    ; FIXME: #86
-    ; The current way to load the IDT does not work
-    ; because there is no org keyword at the top of the kernel assembly file.
-    ; It works by adding org 0x10000 but this prevent Rust library to be linked correctly.
-    lidt [idt]
+    ; 'idt' contains the offset of the label into the kernel file and
+    ; the kernel is loaded in memory at 0x100000, in order to find
+    ; the "in-memory" `idt` label address, we have to get the value
+    ; of 'idt' from compilation and add the kernel starting address
+
+    mov eax, idt            ; get 'idt` label address at compilation (address from file beginning)
+    add eax, 0x100000       ; add 0x100000 as the kernel is loaded at this address
+    lidt [dword cs:eax]     ; load the idt from 0x8:(0x100000 + 'idt' file offset)
 
     ret
