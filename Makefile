@@ -1,8 +1,5 @@
 default: all
 
-libs: force_look
-	cd libs; make
-
 kernel: force_look
 	cd kernel; make
 
@@ -24,7 +21,7 @@ mount: force_look
 
 copy: force_look
 	sudo cp boot/stage2.bin /mnt/STAGE2.BIN
-	sudo cp kernel/kernel.bin /mnt/KERNEL.BIN
+	sudo cp kernel/target/rust-smallos-target/release/kernel /mnt/KERNEL.BIN
 
 boot_copy: force_look
 	dd if=boot/boot.bin of=hd.img count=1 conv=notrunc
@@ -36,7 +33,7 @@ unmount: force_look
 bochs: force_look
 	bochs -q
 
-all: libs kernel boot.bin hd.img fat_16 mount copy unmount boot_copy bochs
+all: kernel boot.bin hd.img fat_16 mount copy unmount boot_copy bochs
 
 force_look:
 	true
@@ -44,5 +41,4 @@ force_look:
 clean:
 	cd boot; make clean; cd ..;
 	cd kernel; make clean; cd ..;
-	cd libs; make clean; cd ..;
 	rm hd.img

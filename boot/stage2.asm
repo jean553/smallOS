@@ -201,17 +201,18 @@ end:
     ; copy the kernel from 0x8600 to 0x100000 as we can now use 32 bits long addresses
     mov esi, 0x8600         ; kernel source base address
     mov edi, 0x100000       ; kernel destination base address
-    mov ecx, 512            ; movsd copy a double-word from ds:esi to es:edi,
-                            ; the kernel is 1 cluster long, so 4 sectors long, so 2048 bytes long (512 * 4),
-                            ; 2048 bytes is equivalent to 512 double words (2048 / 512),
-                            ; so movsd has to be repeated 512 times to copy the whole kernel
+    mov ecx, 2560           ; movsd copy a double-word from ds:esi to es:edi,
+                            ; the kernel is 5 clusters long, so 20 sectors long, so 10240 bytes long (512 * 4 * 5),
+                            ; (note that the kernel file might be a little bit smaller, but larger than 4 clusters anyway)
+                            ; 10240 bytes is equivalent to 2560 double words (10240 / 4 = 2560),
+                            ; so movsd has to be repeated 2560 times to copy the whole kernel
     cld                     ; set DF to 0 (if DF = 0, then movsd increments si and di, otherwise it decrements)
     rep movsd               ; movsd copy one double word from ds:esi to es:edi and add 4 to si and di,
                             ; we repeat the operation 512 times to copy the kernel
 
 
     ; execute the kernel (loaded in 0x100000);
-    ; jump 128 bytes after as the kernel binary is in ELF format,
-    ; so the real executable code starts 128 bytes (0x80) after
+    ; jump 4096 bytes after as the kernel binary is in ELF format,
+    ; so the real executable code starts 4096 bytes (0x1000) after
     ; the beginning of the file
-    jmp 0x8:0x100080
+    jmp 0x8:0x101000
