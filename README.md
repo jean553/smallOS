@@ -25,8 +25,6 @@ A very basic OS for self-learning purposes.
         - Overwrite mandatory features of any Rust program
         - Create a custom target
         - Xargo for custom target compilation
-    * [Make assembly programs call Rust](#make-assembly-programs-call-rust)
-    * [Linker script](#linker-script)
 - [Kernel initialization](#kernel-initialization)
     * [Rust video routines calls](#rust-video-routines-calls)
     * [Interrupt Descriptor Table](#interrupt-descriptor-table)
@@ -314,10 +312,10 @@ The goal of stage3 is to:
 
 ## Rust integration
 
-For now, Rust is used to write a static library, linked to the kernel assembly code
-(ie, as this is a static library, it is copied into the kernel code when called).
-The name of the kernel file is `kernel.asm` (compiled as `kernel.o` and `kernel.bin`
-after the Rust library linkage process).
+The kernel is stored into the `kernel` directory,
+the libraries of the kernel are stored into `libs` directory.
+
+They are all written with Rust.
 
 ### 32 bits compilation
 
@@ -334,16 +332,16 @@ Note that Rust nightly is installed, in order to get the latest features of Rust
 
 ### Static library crate type
 
-We set the library crate type to `staticlib` into `Cargo.toml`:
+We set the library crate type to `rlib` into `Cargo.toml`:
 
 ```
 [lib]
-crate-type = ["staticlib"]
+crate-type = ["rlib"]
 ```
 
 We use this option for two reasons:
  * when linking the library with the assembly kernel, the whole library content will be copied into the kernel code (no dynamic link at runtime, smallOS is not able to handle it for now),
- * all dependencies of the library will be copied into the library itself (no dynamic link again)
+ * all dependencies of the library will be copied into the library itself (no dynamic link)
 
 ### Use rlibc
 
@@ -504,65 +502,6 @@ cargo install xargo
 RUST_TARGET_PATH=$(pwd) xargo build --release --target smallos-target
 ```
 
-### Make assembly programs call Rust
-
-The kernel program is `kernel.asm`. It is "statically" linked with a Rust library.
-In order for this link process to success, `ld` requires the manipulated binary objects
-to have a known valid format. As the OS is a 32 bits OS, we use the ELF format.
-
-So our kernel assembly code must be compatible with ELF:
-
-```asm
-global _start
-
-section .text
-bits 32
-
-_start:
-    ...
-```
-
-A valid ELF binary has a global declared symbol `_start` and a `.text` section.
-This is required for the linking process to succeed.
-
-The ELF format must be specified when compiling and linking:
-
-```sh
-nasm -f elf kernel.asm -o kernel.o
-ld -m elf_i386 -o kernel.bin kernel.o target/smallos-target/release/libsmallos.a
-```
-
-### Linker script
-
-The kernel is linked to its libraries using `ld`. Using this tool, it is not possible
-to specify a default offset into the kernel assembly file (for addresses generation),
-like `org 0x100000`.
-
-This default offset can be specified into the linker script of `ld`.
-This file represents how the output binary (ELF format) should be structured.
-
-In order to keep things as simple as possible, we simply set the default offset
-of the executable code section (`.text`) of the kernel to `0`. We had to overwrite
-this value as the default one for ELF file is something like `0x8048000`.
-
-Keeping this default value was an issue when reading absolute addresses content
-from the kernel code (for instance, `lidt [absolute address]` instruction).
-That's also the reason why we add 0x100000 (kernel base address) to every
-absolute address we want to access from the kernel code:
-
-```asm
-idt:
-
-...
-
-mov eax, idt
-add eax, 0x100000
-lidt [dword cs:eax]
-```
-
-The linker script is very simple, it only contains the executable section
-base address and the name of the entrypoint (`_start` symbol).
-
 ## Kernel initialization
 
 The first tasks of the kernel are:
@@ -577,9 +516,7 @@ the message "smallOS" on the screen.
 
 ### Interrupt Descriptor Table
 
-The Interrupt Descriptor Table is loaded. The assembly function `loadIDT`
-is called by the kernel.
-
+The Interrupt Descriptor Table is loaded.
 The IDT only contains one entry for now, for testing purposes.
 This entry IR (Interrupt Routine) address is simply 0x00000000.
 
