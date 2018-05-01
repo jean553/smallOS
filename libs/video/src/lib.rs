@@ -1,4 +1,4 @@
-//! The smallOS kernel entry point. (no_std attribute as there is no automatic link to any standard library)
+//! SmallOS video library
 #![feature(lang_items)]
 #![no_std]
 
