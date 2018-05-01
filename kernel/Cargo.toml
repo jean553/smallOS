@@ -1,0 +1,7 @@
+[package]
+name = "kernel"
+version = "0.1.0"
+authors = ["Jean LELIEVRE <Jean.LELIEVRE@supinfo.com>"]
+
+[dependencies]
+video = { path = "../libs/video" }
