@@ -1,8 +1,5 @@
 default: all
 
-libs: force_look
-	cd libs; make
-
 kernel: force_look
 	cd kernel; make
 
