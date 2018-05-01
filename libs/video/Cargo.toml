@@ -4,7 +4,7 @@ version = "0.1.0"
 author = "Jean Lelievre"
 
 [lib]
-crate-type = ["staticlib"]
+crate-type = ["rlib"]
 
 [dependencies]
 rlibc = "1.0"
