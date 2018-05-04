@@ -23,10 +23,12 @@ pub fn _start() -> ! {
     loop {}
 }
 
+/// Defines how to unwind the stack allocated objects on panic. This function is required when no standard library is used, but as the kernel is bare-metal for now, we keep things simple and do not take any specific action to unwind the stack on panic.
 #[lang = "eh_personality"] #[no_mangle]
 pub extern fn eh_personality() {
 }
 
+/// panic_fmt is used directly when a panic is thrown. This function is required when no standard library is used, but as the kernel is bare-metal for now, we keep things simple and do not take any specific action on panic.
 #[lang = "panic_fmt"] #[no_mangle]
 pub extern fn panic_fmt() {
 }
