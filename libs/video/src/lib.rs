@@ -21,7 +21,6 @@ pub extern fn print(string: &str) {
 }
 
 /// Clear the whole screen content and set it to write white characters on black background. The video mode must be text, 80 x 25 characters with 16 colors.
-#[no_mangle]
 pub extern fn clear_screen() {
 
     /* ensure every character on the screen
