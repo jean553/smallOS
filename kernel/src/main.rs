@@ -1,4 +1,4 @@
-#![feature(lang_items)]
+#![feature(lang_items, asm)]
 #![no_std]
 #![no_main]
 
@@ -10,7 +10,15 @@ use video::{
     clear_screen,
 };
 
-use hal::load_idt;
+use hal::{
+    load_idt,
+    is_intel_cpu,
+};
+
+/// Halts the system, defined here as it might be required multiple times.
+fn halt() {
+    unsafe { asm!("hlt"); }
+}
 
 #[no_mangle]
 pub fn _start() -> ! {
@@ -20,6 +28,11 @@ pub fn _start() -> ! {
     print(80, "version 1.0");
 
     load_idt();
+
+    if !is_intel_cpu() {
+        print(160, "CPU type is not supported ! (Intel only)");
+        halt();
+    }
 
     loop {}
 }
