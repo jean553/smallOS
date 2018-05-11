@@ -1,3 +1,9 @@
 # hard disk of 10 321 920 bytes (10 Mbytes), 512 bytes per sector
 ata0-master: type=disk, path="hd.img", cylinders=20, heads=16, spt=63
 boot: disk
+
+# smallOS only work on Intel-vendor CPUs,
+# this check is done by the kernel during the starting process,
+# the `cpuid` instruction MUST return "GenuineIntel"
+# as it would do on any Intel CPU machine
+cpuid: vendor_string=GenuineIntel
