@@ -16,7 +16,8 @@ use hal::load_idt;
 pub fn _start() -> ! {
 
     clear_screen();
-    print("smallOS");
+    print(0, "smallOS");
+    print(80, "version 1.0");
 
     load_idt();
 

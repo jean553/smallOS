@@ -5,10 +5,15 @@
 extern crate rlibc;
 
 /// Print a text on screen.
-pub fn print(string: &str) {
+///
+/// Args:
+///
+/// `offset` - starting character offset (from the top left corner), resolution 80 x 25 characters
+/// `string` - the message to print
+pub fn print(offset: u16, string: &str) {
 
     let mut bytes = string.bytes();
-    let mut offset = 0xB8000;
+    let mut offset: u32 = 0xB8000 + (offset * 2) as u32;
 
     for byte in bytes {
 
