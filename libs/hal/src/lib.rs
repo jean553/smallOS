@@ -60,3 +60,29 @@ pub fn load_idt() {
 
     unsafe { asm!("lidt ($0)" :: "r" (register_address)); }
 }
+
+/// Indicates if the CPU vendor is Intel (smallOS only works with Intel CPU)
+///
+/// Returns:
+///
+/// bool
+pub fn is_intel_cpu() -> bool {
+
+    let mut vendor_name_first_part: u32 = 0;
+
+    /* if eax=0, cpuid stores the vendor name
+       into ebx, ecx and edx; we just check
+       the ebx value as it should be 0x756E6547
+       for Intel */
+    unsafe {
+        asm!("mov eax, 0" :::: "intel");
+        asm!("cpuid" : "={ebx}"(vendor_name_first_part) :::);
+    }
+
+    const INTEL_VENDOR: u32 = 0x756E6547;
+    if vendor_name_first_part == INTEL_VENDOR {
+        return true;
+    }
+
+    return false;
+}
