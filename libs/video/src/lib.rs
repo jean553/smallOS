@@ -4,19 +4,20 @@
 
 extern crate rlibc;
 
-/// Print "smallOS" at the top left corner of the screen.
-#[no_mangle]
-pub extern fn print_os_version() {
+/// Print a text on screen.
+pub extern fn print(string: &str) {
 
-    unsafe {
-        *((0xB8000) as *mut u8) = 's' as u8;
-        *((0xB8002) as *mut u8) = 'm' as u8;
-        *((0xB8004) as *mut u8) = 'a' as u8;
-        *((0xB8006) as *mut u8) = 'l' as u8;
-        *((0xB8008) as *mut u8) = 'l' as u8;
-        *((0xB800A) as *mut u8) = 'O' as u8;
-        *((0xB800C) as *mut u8) = 'S' as u8;
-    };
+    let mut bytes = string.bytes();
+    let mut offset = 0xB8000;
+
+    for byte in bytes {
+
+        unsafe {
+            *((offset) as *mut u8) = byte as u8;
+        }
+
+        offset += 2;
+    }
 }
 
 /// Clear the whole screen content and set it to write white characters on black background. The video mode must be text, 80 x 25 characters with 16 colors.

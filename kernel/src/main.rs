@@ -6,7 +6,7 @@ extern crate video;
 extern crate hal;
 
 use video::{
-    print_os_version,
+    print,
     clear_screen,
 };
 
@@ -16,7 +16,7 @@ use hal::load_idt;
 pub fn _start() -> ! {
 
     clear_screen();
-    print_os_version();
+    print("smallOS");
 
     load_idt();
 
