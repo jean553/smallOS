@@ -5,7 +5,7 @@
 extern crate rlibc;
 
 /// Print a text on screen.
-pub extern fn print(string: &str) {
+pub fn print(string: &str) {
 
     let mut bytes = string.bytes();
     let mut offset = 0xB8000;
@@ -21,8 +21,7 @@ pub extern fn print(string: &str) {
 }
 
 /// Clear the whole screen content and set it to write white characters on black background. The video mode must be text, 80 x 25 characters with 16 colors.
-#[no_mangle]
-pub extern fn clear_screen() {
+pub fn clear_screen() {
 
     /* ensure every character on the screen
        is displayed in white (with intensity) */
