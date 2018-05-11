@@ -12,10 +12,9 @@ extern crate rlibc;
 /// `string` - the message to print
 pub fn print(offset: u16, string: &str) {
 
-    let mut bytes = string.bytes();
     let mut offset: u32 = 0xB8000 + (offset * 2) as u32;
 
-    for byte in bytes {
+    for byte in string.bytes() {
 
         unsafe {
             *((offset) as *mut u8) = byte as u8;
