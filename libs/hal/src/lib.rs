@@ -123,7 +123,7 @@ pub fn initialize_pic() {
         asm!("out 0xA0, al" :::: "intel");
     }
 
-    /* send the second ICW with the following properties:
+    /* send the second ICW (first PIC data port call) with the following properties:
      * it contains the base index of the interrupt requests.
      * For now, the IVT is loaded at the address 0x00000,
      * it contains 32 default interrupt requests, so 32 indices.
@@ -140,12 +140,42 @@ pub fn initialize_pic() {
     const MASTER_PIC_IRQ_BASE_INDEX: u8 = 0x20;
     const SLAVE_PIC_IRQ_BASE_INDEX: u8 = 0x28;
     unsafe {
-        asm!("mov al, $0" :: "r" (MASTER_PIC_IRQ_BASE_INDEX) :: "intel");
-
         /* set the master PIC IRQs base index */
+        asm!("mov al, $0" :: "r" (MASTER_PIC_IRQ_BASE_INDEX) :: "intel");
         asm!("out 0x21, al" :::: "intel");
 
         /* set the secondary PIC IRQs base index */
+        asm!("mov al, $0" :: "r" (SLAVE_PIC_IRQ_BASE_INDEX) :: "intel");
+        asm!("out 0xA1, al" :::: "intel");
+    }
+
+    /* send the third ICW (second PIC data port call) with the following properties:
+     *
+     * - on the master: indicates which Interrupt Routine IR line
+     *   to use to communicate with the secondary PIC,
+     *   (x86 architecture uses the IR line 2 to connect the master PIC with the secondary PIC)
+     *   bit 0: use IR0,
+     *   bit 1: use IR1,
+     *   bit 2: use IR2,
+     *   ...
+     *   bit 7: use IR7,
+     *
+     * - on the slave: indicates which Interrupt Routine IR line
+     *   to use to communicate with the master PIC,
+     *   (x86 architecture uses the IR line 2 to connect the secondary PIC with the master PIC)
+     *   bits 0-7: IR number (ex: 011b for the third one)
+     *
+     *   IMPORTANT: on the master, the IR line is chosen by setting one specific bit to 1,
+     *   on the slave, the IR line is chosen by setting the IR number on bits 0 to 7 */
+    const MASTER_TO_SECOND_PIC_SELECTOR: u8 = 0b00000100; // third IR line (IR0) so third bit
+    const SECOND_TO_MASTER_PIC_SELECTOR: u8 = 2;
+    unsafe {
+        /* connect the master PIC to the slave PIC */
+        asm!("mov al, $0" :: "r" (MASTER_TO_SECOND_PIC_SELECTOR) :: "intel");
+        asm!("out 0x21, al" :::: "intel");
+
+        /* connect the slave PIC to the master PIC */
+        asm!("mov al, $0" :: "r" (SECOND_TO_MASTER_PIC_SELECTOR) :: "intel");
         asm!("out 0xA1, al" :::: "intel");
     }
 }
