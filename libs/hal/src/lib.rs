@@ -122,4 +122,27 @@ pub fn initialize_pic() {
         /* slave PIC initialization */
         asm!("out 0xA0, al" :::: "intel");
     }
+
+    /* send the second ICW with the following properties:
+     * it contains the base index of the interrupt requests.
+     * For now, the IVT is loaded at the address 0x00000,
+     * it contains 32 default interrupt requests, so 32 indices.
+     * so we start to plug the Interrupt Request lines from the PIC
+     * to the IVT from index 32 (0x20), so:
+     * IRQ0 uses interrupt number 0x20,
+     * IRQ1 uses interrupt number 0x21... etc...
+     * IRQ7 uses interrupt number 0x27
+     * the first height indices are set on the master PIC,
+     * the following height indices are set on the slave PIC */
+    const MASTER_PIC_IRQ_BASE_INDEX: u8 = 0x20;
+    const SLAVE_PIC_IRQ_BASE_INDEX: u8 = 0x28;
+    unsafe {
+        asm!("mov al, $0" :: "r" (MASTER_PIC_IRQ_BASE_INDEX) :: "intel");
+
+        /* set the master PIC IRQs base index */
+        asm!("out 0x21, al" :::: "intel");
+
+        /* set the secondary PIC IRQs base index */
+        asm!("out 0xA1, al" :::: "intel");
+    }
 }
