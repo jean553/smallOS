@@ -109,10 +109,17 @@ pub fn initialize_pic() {
      * so we could use level mode; the problem is that the Bochs emulator does not support
      * PIC level triggered mode), x86 architecture has two PICs, so we enable cascading;
      *
-     * the primary PIC command port address is 0x20 */
+     * the primary PIC command port address is 0x20,
+     * the slave PIC command port address is 0xA0
+     * (PIC command port address is used for ICW1) */
     const PIC_FIRST_ICW: u8 = 0b00010001;
     unsafe {
         asm!("mov al, $0" :: "r" (PIC_FIRST_ICW) :: "intel");
+
+        /* master PIC initialization */
         asm!("out 0x20, al" :::: "intel");
+
+        /* slave PIC initialization */
+        asm!("out 0xA0, al" :::: "intel");
     }
 }
