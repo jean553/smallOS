@@ -13,6 +13,7 @@ use video::{
 use hal::{
     load_idt,
     is_intel_cpu,
+    initialize_pic,
 };
 
 /// Halts the system, defined here as it might be required multiple times.
@@ -33,6 +34,8 @@ pub fn _start() -> ! {
         print(160, "CPU type is not supported ! (Intel only)");
         halt();
     }
+
+    initialize_pic();
 
     loop {}
 }
