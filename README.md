@@ -33,7 +33,7 @@ A very basic OS for self-learning purposes.
 
 ## Tasks in progress
 
-* replace this assembly kernel by a Rust kernel (that actually does the same thing)
+ * initialize the PIC and the PIT
 
 ## Installation
 
