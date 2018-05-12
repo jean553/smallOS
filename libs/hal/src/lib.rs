@@ -110,8 +110,9 @@ pub fn initialize_pic() {
      * PIC level triggered mode), x86 architecture has two PICs, so we enable cascading;
      *
      * the primary PIC command port address is 0x20 */
+    const PIC_FIRST_ICW: u8 = 0b00010001;
     unsafe {
-        asm!("mov al, 00010001b" :::: "intel");
+        asm!("mov al, $0" :: "r" (PIC_FIRST_ICW) :: "intel");
         asm!("out 0x20, al" :::: "intel");
     }
 }
