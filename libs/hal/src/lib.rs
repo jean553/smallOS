@@ -178,4 +178,21 @@ pub fn initialize_pic() {
         asm!("mov al, $0" :: "r" (SECOND_TO_MASTER_PIC_SELECTOR) :: "intel");
         asm!("out 0xA1, al" :::: "intel");
     }
+
+    /* send the fourth ICW (third PIC data port call) with the following properties:
+     * bit 0: PIC mode (1 if 80x86 mode, 0 if 8085 mode),
+     * bit 1: 1 to automatically ends an interrupt after pulse (special mode), 0 for normal mode,
+     * bit 2: specify master PIC if PIC buffering is enabled (1 if master, 0 if slave),
+     * bit 3: enable PIC buffering (1 to enable, 0 to disable),
+     * bit 4: enable fully nested mode (special mode when a large amount of PIC is available),
+     * bits 5-7: unused
+     *
+     * we start each PIC (master and slave) in 80x86 mode, without any specific mode,
+     * without fully nested mode, without buffering (we keep things simple for now) */
+    const PIC_FOURTH_ICW: u8 = 0b00000001;
+    unsafe {
+        asm!("mov al, $0" :: "r" (PIC_FOURTH_ICW) :: "intel");
+        asm!("out 0x21, al" :::: "intel");
+        asm!("out 0xA1, al" :::: "intel");
+    }
 }
