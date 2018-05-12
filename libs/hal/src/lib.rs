@@ -133,7 +133,10 @@ pub fn initialize_pic() {
      * IRQ1 uses interrupt number 0x21... etc...
      * IRQ7 uses interrupt number 0x27
      * the first height indices are set on the master PIC,
-     * the following height indices are set on the slave PIC */
+     * the following height indices are set on the slave PIC;
+     *
+     * these indices must be sent to PIC data port address
+     * (0x21 for the primary and 0xA1 for the secondary) */
     const MASTER_PIC_IRQ_BASE_INDEX: u8 = 0x20;
     const SLAVE_PIC_IRQ_BASE_INDEX: u8 = 0x28;
     unsafe {
