@@ -16,7 +16,7 @@ struct IDTRegister {
    bits 0 - 15   bits 0 - 15 of the interrupt routine IR address
    bits 16 - 31  the segment selector of the interrupt routine IR
    bits 32 - 39  unused, all set to 0
-   bits 40 - 44  indicates if the descriptor is a 32 bits or 16 bits descriptor 
+   bits 40 - 44  indicates if the descriptor is a 32 bits or 16 bits descriptor
                  (01110b if 32 bits, 00110b if 16 bits descriptor)
    bits 45 - 46  Descriptor Privilege Level (DPL), indicates ring of execution
                  (ring 0, 1, 2 or 3, so 00b, 01b, 10b or 11b)
@@ -85,4 +85,33 @@ pub fn is_intel_cpu() -> bool {
     }
 
     return false;
+}
+
+/// Initializes the 8259A PIC (Programmable Interrupt Controller).
+/// Sends the ICW (Initialization Control Word) to the PIC
+/// in order to set it up.
+pub fn initialize_pic() {
+
+    /* send the first ICW with the following properties:
+     * bit 0: set to 1 to considere sending an ICW 4,
+     * bit 1: 0 if cascaded PIC (slave PIC linked with master PIC), 1 if single PIC
+     * bit 2: ignored, 0
+     * bit 3: level triggered or edge triggered interrupts
+     *        - level (1): interrupt keep PIC Interrupt Request line enabled (with current) until the
+     *        interrupt is considered by the CPU (making the line unusuable for others interrupts),
+     *        - edge (0): interrupt is a single current pulse on a line, the line is immediately
+     *        available for other interrupts (too low current pulse might not be detected though)
+     * bit 4: 1 to initialize the PIC, 0 to not initialize the PIC
+     * bits 5 - 7: ignored, 0
+     *
+     * we enable the PIC, with edge triggered mode (we dont need to handle interrupts priority for
+     * now, so there is no problem if one interrupt keeps an interrupt line for a long time,
+     * so we could use level mode; the problem is that the Bochs emulator does not support
+     * PIC level triggered mode), x86 architecture has two PICs, so we enable cascading;
+     *
+     * the primary PIC command port address is 0x20 */
+    unsafe {
+        asm!("mov al, 00010001b" :::: "intel");
+        asm!("out 0x20, al" :::: "intel");
+    }
 }
