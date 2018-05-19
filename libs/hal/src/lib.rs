@@ -1,4 +1,5 @@
 //! SmallOS Hardware Abstraction Layer library
+#![allow(unused_assignments, dead_code)]
 #![feature(asm)]
 #![no_std]
 
