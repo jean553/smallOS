@@ -547,6 +547,30 @@ Some examples of signals:
 
 There are two PICs into the x86 architecture.
 
+Here a simplified representation of a PIC:
+
+```
+                      +------------+
+                      |            |
+           +----------+ D0    IR0  +------------------+ Hardware timer component
+           |----------| D1    IR1  |------------------+ Hardware keyboard component
+           |----------| D2    IR2  |-------|
+CPU +-----------------| D3    IR3  |-------|
+           |----------| D4    IR4  |-------|   Others...
+           |----------| D5    IR5  |-------|
+           |----------| D6    IR6  |-------|
+           +----------+ D7    IR7  +-------+
+                      |            |
+                      |            |  connected to slave PIC...
+                      |            |
+                      |       CAS0 +-------------------------+
+                      |       CAS1 |-------------------------|
+                      |       CAS2 +-------------------------+
+                      |            |
+                      +------------+
+
+```
+
 ## Debug
 
 ### Check GDT and IDT
