@@ -582,6 +582,38 @@ to the CPU according to which IR line has been enabled
 Note that the PIC also contains some other lines, used for electrical power,
 PICs cascading and CPU communication.
 
+Here a simplified representation of master/slave PIC connection:
+
+```
+                +-----------+
+                |           |
+                |   Master  |
+                |           |
+                |           |
+ CPU  +---------+ D      IR +-----------------+ Hardware components
+           |    |           |
+           |    |           |
+           |    |        CAS+------+
+           |    |           |      |
+           |    +-----------+      |
+           |                       |
+           |    +-----------+      |
+           |    |           |      |
+           |    |   Slave   |      |
+           |    |           |      |
+           |    |           |      |
+           +----+ D      IR +-----------------+ Hardware components
+                |           |      |
+                |           |      |
+                |        CAS+------+
+                |           |
+                +-----------+
+```
+
+Each PIC contains height Interrupt Routine lines (IR).
+Using the master/slave relation, the two PICs can
+handle 16 interrupt routines by working together.
+
 ## Debug
 
 ### Check GDT and IDT
