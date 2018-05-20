@@ -31,6 +31,7 @@ A very basic OS for self-learning purposes.
     * [Programmable Interrupt Controller initialization](#programmable-interrupt-controller-initialization)
         - Architecture
         - Interrupt Routines Lines list
+        - Initialization Control Words
 - [Debug](#debug)
     * [Check GDT and IDT](#check-gdt-and-idt)
 
@@ -638,6 +639,26 @@ to the following hardware components to receive interrupts signals:
  * PIC1 IR5 - FPU (Floating-Point Unit), handles floating point operations
  * PIC1 IR6 - Hard disk drive
  * PIC1 IR7 - Reserved
+
+#### Initialization Control Words
+
+The PIC must receive four specific/separated messages in order to be fully prepared.
+Messages are called ICW (Initialization Control Word).
+This initialization is handled by a dedicated HAL function called by the kernel at start.
+
+ICW list:
+ * ICW1: indicate if the PIC is cascaded, how interrupts are considered "triggered interrupts"
+(level or edge, we choose edge as Bochs only support the edge mode),
+ * ICW2: indicate the Interrupt Requests base address (according to which interrupt has been received,
+the PIC needs to know where are the interrupt routines into the memory, this is related to the address
+of the IVT in real mode and to the IDT in protected mode),
+ * ICW3: indicates which IR line to use on each PIC in order to make them communicate to each other,
+ * ICW4: set some properties on every PIC and starts them
+
+Check the code documentation directly for details.
+
+These messages are bytes. They are sent directly to the ports that are used to communicate with the PICs.
+These ports are: 0x20, 0xA0, 0x21 and 0xA1.
 
 ## Debug
 
