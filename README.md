@@ -28,6 +28,7 @@ A very basic OS for self-learning purposes.
 - [Kernel initialization](#kernel-initialization)
     * [Rust video routines calls](#rust-video-routines-calls)
     * [Interrupt Descriptor Table](#interrupt-descriptor-table)
+    * [Programmable Interrupt Controller initialization](#programmable-interrupt-controller-initialization)
 - [Debug](#debug)
     * [Check GDT and IDT](#check-gdt-and-idt)
 
@@ -522,6 +523,27 @@ the message "smallOS" on the screen.
 The Interrupt Descriptor Table is loaded.
 The IDT only contains one entry for now, for testing purposes.
 This entry IR (Interrupt Routine) address is simply 0x00000000.
+
+### Programmable Interrupt Controller initialization
+
+The PIC located on the motherboard is used to group different interrupt sources into one,
+in order to forward those interrupts to the CPU using limited and dedicated lines.
+As this is the first component to receive interrupts, the PIC can prioritize them
+before forwarding them to the CPU in order.
+A PIC can be connected to other PIC in order to handle more interrupts,
+in that case, one PIC is the master and the other one is the slave,
+connecting multiple PICs to make them work together is called "cascading".
+
+PICs are only used for *hardware interrupts*. An hardware interrupt is a signal
+generated from a hardware component. This signal has to be handled by the system.
+
+Some examples of signals:
+ * a key has been pressed down on the keyboard,
+ * signal received on a network card,
+ * clock signal generated,
+... etc ...
+
+There are two PICs into the x86 architecture.
 
 ## Debug
 
