@@ -28,6 +28,7 @@ A very basic OS for self-learning purposes.
 - [Kernel initialization](#kernel-initialization)
     * [Rust video routines calls](#rust-video-routines-calls)
     * [Interrupt Descriptor Table](#interrupt-descriptor-table)
+    * [Programmable Interrupt Controller initialization](#programmable-interrupt-controller-initialization)
 - [Debug](#debug)
     * [Check GDT and IDT](#check-gdt-and-idt)
 
@@ -291,7 +292,9 @@ The goal of stage3 is to:
          |                      |
          +----------------------+ ... <- BEWARE: everything before this address can be ignored,
          |                      |        except BIOS from 0x00000 to 0x004FF and
-         |        Stack         |        the GDT loaded into the stage2 area
+         |        Stack         |        the GDT loaded into the stage2 area;
+         |                      |        we considere this case would not happen for now,
+         |                      |        the stack might be moved again later...
          |                      |
          +----------------------+0x9FFEF - 0x9FFF0
          |                      |
@@ -303,6 +306,7 @@ The goal of stage3 is to:
          +----------------------+0xFFFFF - 0x100000
          |        Kernel        |
          |                      |
+         +----------------------+ end of the kernel
          |         ...          |
          |                      |
          |                      |
@@ -506,7 +510,9 @@ RUST_TARGET_PATH=$(pwd) xargo build --release --target smallos-target
 
 The first tasks of the kernel are:
  * call Rust library video routines to clear the screen and write a simple message,
- * load the Interrupt Descriptor Table
+ * load the Interrupt Descriptor Table,
+ * check if the CPU vendor is Intel (halt the system otherwise),
+ * initialize the Programmable Interrupt Controller for hardware interrupts
 
 ### Rust video routines calls
 
@@ -519,6 +525,94 @@ the message "smallOS" on the screen.
 The Interrupt Descriptor Table is loaded.
 The IDT only contains one entry for now, for testing purposes.
 This entry IR (Interrupt Routine) address is simply 0x00000000.
+
+### Programmable Interrupt Controller initialization
+
+The PIC located on the motherboard is used to group different interrupt sources into one,
+in order to forward those interrupts to the CPU using limited and dedicated lines.
+As this is the first component to receive interrupts, the PIC can prioritize them
+before forwarding them to the CPU in order.
+A PIC can be connected to other PIC in order to handle more interrupts,
+in that case, one PIC is the master and the other one is the slave,
+connecting multiple PICs to make them work together is called "cascading".
+
+PICs are only used for *hardware interrupts*. An hardware interrupt is a signal
+generated from a hardware component. This signal has to be handled by the system.
+
+Some examples of signals:
+ * a key has been pressed down on the keyboard,
+ * signal received on a network card,
+ * clock signal generated,
+... etc ...
+
+There are two PICs into the x86 architecture.
+
+Here a simplified representation of a PIC:
+
+```
+                      +------------+
+                      |            |
+           +----------+ D0    IR0  +------------------+ Hardware timer component
+           |----------| D1    IR1  |------------------+ Hardware keyboard component
+           |----------| D2    IR2  |-------|
+CPU +-----------------| D3    IR3  |-------|
+           |----------| D4    IR4  |-------|   Others...
+           |----------| D5    IR5  |-------|
+           |----------| D6    IR6  |-------|
+           +----------+ D7    IR7  +-------+
+                      |            |
+                      |            |  connected to slave PIC...
+                      |            |
+                      |       CAS0 +-------------------------+
+                      |       CAS1 |-------------------------|
+                      |       CAS2 +-------------------------+
+                      |            |
+                      +------------+
+
+```
+
+The PIC contains the following main lines:
+ * CAS lines are used to link two PICs together (master and slave),
+ * IR lines (Interrupt Routines), connected to every hardware components,
+they are set from 0 to 1 for a short period of time when the component
+throws an interrupt,
+ * D lines are connected to the CPU, they send the interrupt number
+to the CPU according to which IR line has been enabled
+
+Note that the PIC also contains some other lines, used for electrical power,
+PICs cascading and CPU communication.
+
+Here a simplified representation of master/slave PIC connection:
+
+```
+                +-----------+
+                |           |
+                |   Master  |
+                |           |
+                |           |
+ CPU  +---------+ D      IR +-----------------+ Hardware components
+           |    |           |
+           |    |           |
+           |    |        CAS+------+
+           |    |           |      |
+           |    +-----------+      |
+           |                       |
+           |    +-----------+      |
+           |    |           |      |
+           |    |   Slave   |      |
+           |    |           |      |
+           |    |           |      |
+           +----+ D      IR +-----------------+ Hardware components
+                |           |      |
+                |           |      |
+                |        CAS+------+
+                |           |
+                +-----------+
+```
+
+Each PIC contains height Interrupt Routine lines (IR).
+Using the master/slave relation, the two PICs can
+handle 16 interrupt routines by working together.
 
 ## Debug
 
