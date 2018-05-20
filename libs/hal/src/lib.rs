@@ -7,7 +7,13 @@ use core::mem;
 
 /* stores the required values to load the IDT with LIDT
    bits 0 - 15: IDT size
-   bits 16 - 47: IDT starting address */
+   bits 16 - 47: IDT starting address
+
+   the structure must be packed in order to ensure that
+   the assembly instruction lidt (load IDT) can load it
+   (the instruction requires order and no-alignment)
+*/
+#[repr(packed)]
 struct IDTRegister {
     limit: u16,
     base: u32,
@@ -22,9 +28,15 @@ struct IDTRegister {
    bits 45 - 46  Descriptor Privilege Level (DPL), indicates ring of execution
                  (ring 0, 1, 2 or 3, so 00b, 01b, 10b or 11b)
    bits 47       Enable or disable the descriptor (1: enable)
-   bits 48 - 63  bits 16 - 31 of the interrupt routine IR address */
+   bits 48 - 63  bits 16 - 31 of the interrupt routine IR address
+
+   the structure must be packed in order to ensure that
+   the assembly instruction lidt (load IDT) can load it
+   (the instruction requires order and no-alignment)
+*/
 
 /* TODO: add the structure of tasks and traps (not only interrupts) */
+#[repr(packed)]
 struct IDTDescriptor {
     base_low: u16,
     selector: u16,
