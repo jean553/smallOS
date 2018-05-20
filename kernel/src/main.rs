@@ -28,7 +28,7 @@ pub fn _start() -> ! {
     print(0, "smallOS");
     print(80, "version 1.0");
 
-    load_idt();
+    unsafe { load_idt(); }
 
     if !is_intel_cpu() {
         print(160, "CPU type is not supported ! (Intel only)");
