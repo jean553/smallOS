@@ -510,7 +510,9 @@ RUST_TARGET_PATH=$(pwd) xargo build --release --target smallos-target
 
 The first tasks of the kernel are:
  * call Rust library video routines to clear the screen and write a simple message,
- * load the Interrupt Descriptor Table
+ * load the Interrupt Descriptor Table,
+ * check if the CPU vendor is Intel (halt the system otherwise),
+ * initialize the Programmable Interrupt Controller for hardware interrupts
 
 ### Rust video routines calls
 
