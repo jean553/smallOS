@@ -29,6 +29,8 @@ A very basic OS for self-learning purposes.
     * [Rust video routines calls](#rust-video-routines-calls)
     * [Interrupt Descriptor Table](#interrupt-descriptor-table)
     * [Programmable Interrupt Controller initialization](#programmable-interrupt-controller-initialization)
+        - Architecture
+        - Interrupt Routines Lines list
 - [Debug](#debug)
     * [Check GDT and IDT](#check-gdt-and-idt)
 
@@ -536,6 +538,8 @@ A PIC can be connected to other PIC in order to handle more interrupts,
 in that case, one PIC is the master and the other one is the slave,
 connecting multiple PICs to make them work together is called "cascading".
 
+#### Architecture
+
 PICs are only used for *hardware interrupts*. An hardware interrupt is a signal
 generated from a hardware component. This signal has to be handled by the system.
 
@@ -613,6 +617,27 @@ Here a simplified representation of master/slave PIC connection:
 Each PIC contains height Interrupt Routine lines (IR).
 Using the master/slave relation, the two PICs can
 handle 16 interrupt routines by working together.
+
+#### Interrupt Routines lines list
+
+Within the x86 architecture, the PIC IR lines are connected
+to the following hardware components to receive interrupts signals:
+
+ * PIC0 IR0 - timer
+ * PIC0 IR1 - keyboard
+ * PIC0 IR2 - SPECIFIC: connected to the master (or slave) PIC for cascading,
+ * PIC0 IR3 - Serial 1 (serial is a port that can be connected to a device)
+ * PIC0 IR4 - Serial 2
+ * PIC0 IR5 - Parallel port 2 (parallel port that can be connected to a device) / PS/2 port (port that can be connected to a device),
+ * PIC0 IR6 - Floppy drive
+ * PIC0 IR7 - Parallel port 1
+ * PIC1 IR0 - CMOS (Comnplementary Metal Oxide Semiconductor), handles BIOS date and time
+ * PIC1 IR1 - CGA (Color Graphics Adapter) first IBM video controller
+ * PIC1 IR2/IR3 - Reserved
+ * PIC1 IR4 - PS/2 second port (might be reserved according to the system)
+ * PIC1 IR5 - FPU (Floating-Point Unit), handles floating point operations
+ * PIC1 IR6 - Hard disk drive
+ * PIC1 IR7 - Reserved
 
 ## Debug
 
