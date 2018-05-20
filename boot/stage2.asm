@@ -1,3 +1,11 @@
+;-----------------------------------------------------------------------------
+; stage2 section
+; - loads the Global Descriptor Table
+; - loads the kernel from disk to memory
+; - enable A20 for 32 bits-long addresses
+; - switch to 32 bits protected mode
+;-----------------------------------------------------------------------------
+
 ; lgdt [gdt] needs an offset to be set: in fact, this program is loaded at 0x7E00,
 ; and we need to add this offset to [gdt] in order to point to the correct address,
 ; for some reasons I ignore, simply using ds=0x07E0 does not work in that case...
@@ -180,6 +188,14 @@ start:
 
     ; the code segment is at the offset 0x8 of the GDT
     jmp 0x8:end
+
+;-----------------------------------------------------------------------------
+; stage3 section (last preparations before switch to the kernel)
+; - ensure the data segment value is correct
+; - reset the stack for kernel
+; - copy tke kernel to its final memory location (0x100000)
+; - execute the kernel
+;-----------------------------------------------------------------------------
 
 bits 32
 
