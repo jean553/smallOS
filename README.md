@@ -291,7 +291,9 @@ The goal of stage3 is to:
          |                      |
          +----------------------+ ... <- BEWARE: everything before this address can be ignored,
          |                      |        except BIOS from 0x00000 to 0x004FF and
-         |        Stack         |        the GDT loaded into the stage2 area
+         |        Stack         |        the GDT loaded into the stage2 area;
+         |                      |        we considere this case would not happen for now,
+         |                      |        the stack might be moved again later...
          |                      |
          +----------------------+0x9FFEF - 0x9FFF0
          |                      |
@@ -303,6 +305,7 @@ The goal of stage3 is to:
          +----------------------+0xFFFFF - 0x100000
          |        Kernel        |
          |                      |
+         +----------------------+ end of the kernel
          |         ...          |
          |                      |
          |                      |
