@@ -7,7 +7,13 @@ use core::mem;
 
 /* stores the required values to load the IDT with LIDT
    bits 0 - 15: IDT size
-   bits 16 - 47: IDT starting address */
+   bits 16 - 47: IDT starting address
+
+   the structure must be packed in order to ensure that
+   the assembly instruction lidt (load IDT) can load it
+   (the instruction requires order and no-alignment)
+*/
+#[repr(packed)]
 struct IDTRegister {
     limit: u16,
     base: u32,
@@ -22,9 +28,15 @@ struct IDTRegister {
    bits 45 - 46  Descriptor Privilege Level (DPL), indicates ring of execution
                  (ring 0, 1, 2 or 3, so 00b, 01b, 10b or 11b)
    bits 47       Enable or disable the descriptor (1: enable)
-   bits 48 - 63  bits 16 - 31 of the interrupt routine IR address */
+   bits 48 - 63  bits 16 - 31 of the interrupt routine IR address
+
+   the structure must be packed in order to ensure that
+   the assembly instruction lidt (load IDT) can load it
+   (the instruction requires order and no-alignment)
+*/
 
 /* TODO: add the structure of tasks and traps (not only interrupts) */
+#[repr(packed)]
 struct IDTDescriptor {
     base_low: u16,
     selector: u16,
@@ -33,33 +45,26 @@ struct IDTDescriptor {
     base_high: u16,
 }
 
-/// Loads the Interrupts Descriptor Table.
-pub fn load_idt() {
+/// Loads the Interrupts Descriptor Table. The function is unsafe as it directly write into memory addresses (we want the IDT to have a specific position, at 0x11000).
+pub unsafe fn load_idt() {
 
-    /* TODO: check if it can be removed, declare a simple descriptor
-       only in order to check that loading the IDT works */
-    let descriptors = IDTDescriptor {
-        base_low: 0x0000,
+    const IDT_START_ADDRESS: u32 = 0x11000;
+    const IDT_REGISTER_ADDRESS: u32 = 0x11008;
+
+    *(IDT_START_ADDRESS as *mut IDTDescriptor) = IDTDescriptor {
+        base_low: 0xffff,
         selector: 0x0008,
         unused: 0,
         flags: 0b10000110,
         base_high: 0x0000,
     };
 
-    let register = IDTRegister {
+    *(IDT_REGISTER_ADDRESS as *mut IDTRegister) = IDTRegister {
         limit: mem::size_of::<IDTDescriptor>() as u16,
-        base: (&descriptors as *const IDTDescriptor) as u32,
+        base: IDT_START_ADDRESS as u32,
     };
 
-    /* contains the offset of the label into the kernel file and
-       the kernel is loaded in memory at 0x100000, in order to find
-       the "in-memory" `idt` label address, we have to get the value
-       of 'idt' from compilation and add the kernel starting address */
-    const KERNEL_ADDRESS: u32 = 0x100000;
-    let register_address = (&register as *const IDTRegister) as u32
-        + KERNEL_ADDRESS;
-
-    unsafe { asm!("lidt ($0)" :: "r" (register_address)); }
+    asm!("lidt ($0)" :: "r" (IDT_REGISTER_ADDRESS));
 }
 
 /// Indicates if the CPU vendor is Intel (smallOS only works with Intel CPU)
