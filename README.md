@@ -554,7 +554,76 @@ the message "smallOS" on the screen.
 
 The Interrupt Descriptor Table is loaded.
 The IDT only contains one entry for now, for testing purposes.
-This entry IR (Interrupt Routine) address is simply 0x00000000.
+This entry IR (Interrupt Routine) address is simply 0x00000000
+(this will have to be modified in the future).
+
+The IDT is loaded right after the FAT at 0x11000.
+
+```
+         +----------------------+0x0000
+         |                      |
+         |         IVT          |
+         |                      |
+         +----------------------+0x03FF - 0x0400
+         |         BIOS         |
+         +----------------------+0x04FF - 0x0500
+         |        stack         |
+         +----------------------+0x09FF - 0x0A00
+         |                      |
+         |        Free          |
+         |                      |
+         +----------------------+0x7BFF - 0x7C00
+         |       boot.bin       |
+         +----------------------+0x7DFF - 0x7E00
+         |                      |
+         |       stage2.bin     |
+         |                      |
+         +----------------------+0x85FF - 0x8600
+         |                      |
+         |                      |
+         |         Free         |
+         |                      |
+         |                      |
+         +----------------------+0x9FFF - 0xA000
+         |                      |
+         |    Root directory    |
+         |                      |
+         +----------------------+0xE7FF - 0xE800
+         |                      |
+         |         FAT          |
+         |                      |
+         +----------------------+0x10FFF - 0x11000
+         |                      |
+         |         IDT          |
+         |                      |
+         +----------------------+ end of the IDT
+         |                      |
+         |                      |
+         |         Free         |
+         |                      |
+         |                      |
+         +----------------------+ ... <- top of the stack
+         |                      |
+         |        Stack         |
+         |                      |
+         +----------------------+0x9FFEF - 0x9FFF0
+         |                      |
+         |         Free         |
+         |                      |
+         +----------------------+0x9FFFF - OxA0000
+         |         Used         |
+         |                      |
+         +----------------------+0xFFFFF - 0x100000
+         |        Kernel        |
+         |                      |
+         +----------------------+ end of the kernel
+         |                      |
+         |                      |
+         |         Free         |
+         |                      |
+         |                      |
+         +----------------------+0xFFFFFFFF
+```
 
 ### Programmable Interrupt Controller initialization
 
