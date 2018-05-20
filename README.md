@@ -222,9 +222,21 @@ It is loaded by the boot sector at 0x07E00, right after the boot sector.
          +----------------------+0x85FF - 0x8600
          |                      |
          |                      |
-         |                      |
          |         Free         |
          |                      |
+         |                      |
+         +----------------------+0x9FFF - 0xA000
+         |                      |
+         |    Root directory    |
+         |                      |
+         +----------------------+0xE7FF - 0xE800
+         |                      |
+         |         FAT          |
+         |                      |
+         +----------------------+0x10FFF - 0x11000
+         |                      |
+         |                      |
+         |         Free         |
          |                      |
          |                      |
          +----------------------+0x9FFFF - OxA0000
@@ -289,13 +301,28 @@ The goal of stage3 is to:
          +----------------------+0x85FF - 0x8600
          |                      |
          |                      |
+         |         Free         |
+         |                      |
+         |                      |
+         +----------------------+0x9FFF - 0xA000
+         |                      |
+         |    Root directory    |
+         |                      |
+         +----------------------+0xE7FF - 0xE800
+         |                      |
+         |         FAT          |
+         |                      |
+         +----------------------+0x10FFF - 0x11000
+         |                      |
          |                      |
          |         Free         |
          |                      |
          |                      |
          +----------------------+ ... <- BEWARE: everything before this address can be ignored,
-         |                      |        except BIOS from 0x00000 to 0x004FF and
-         |        Stack         |        the GDT loaded into the stage2 area;
+         |                      |        except:
+         |                      |         - BIOS from 0x00000 to 0x004FF,
+         |        Stack         |         - the GDT loaded into the stage2 area,
+         |                      |         - the root directory and the FAT
          |                      |        we considere this case would not happen for now,
          |                      |        the stack might be moved again later...
          |                      |
