@@ -571,6 +571,17 @@ CPU +-----------------| D3    IR3  |-------|
 
 ```
 
+The PIC contains the following main lines:
+ * CAS lines are used to link two PICs together (master and slave),
+ * IR lines (Interrupt Routines), connected to every hardware components,
+they are set from 0 to 1 for a short period of time when the component
+throws an interrupt,
+ * D lines are connected to the CPU, they send the interrupt number
+to the CPU according to which IR line has been enabled
+
+Note that the PIC also contains some other lines, used for electrical power,
+PICs cascading and CPU communication.
+
 ## Debug
 
 ### Check GDT and IDT
