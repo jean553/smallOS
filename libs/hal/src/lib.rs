@@ -5,6 +5,8 @@
 
 use core::mem;
 
+const IDT_START_ADDRESS: u32 = 0x11000;
+
 /* stores the required values to load the IDT with LIDT
    bits 0 - 15: IDT size
    bits 16 - 47: IDT starting address
@@ -46,37 +48,54 @@ struct IDTDescriptor {
 }
 
 /// General function for any kind of exception/error.
-pub unsafe fn handle_error() {
+///
+/// IMPORTANT: must be private in order to return in-memory address when call "handle_error as *const ()"
+unsafe fn handle_error() {
     asm!("hlt");
 }
 
-/// Loads the Interrupts Descriptor Table. The function is unsafe as it directly write into memory addresses (we want the IDT to have a specific position, at 0x11000).
-pub unsafe fn load_idt() {
+/// Loads one IDT descriptor at the given index into the IDT. An IRQ at this index would call the IR at the given address.
+///
+/// Args:
+///
+/// `index` - the index of the IDT descriptor
+/// `address` - the base address of the IR for the current entry
+unsafe fn create_idt_descriptor(
+    index: usize,
+    address: u32,
+) {
 
-    const IDT_START_ADDRESS: u32 = 0x11000;
-    const IDT_REGISTER_ADDRESS: u32 = 0x11008;
+    const IDT_DESCRIPTOR_SIZE: u32 = 8;
+    let descriptor_address = IDT_START_ADDRESS + (
+        IDT_DESCRIPTOR_SIZE * (index as u32)
+    );
 
-    /* calculate the in-memory address of the exceptions handling function;
-       first get its in-kernel binary address and then calculates its in-memory address:
-       substract the in-kernel address and add the in-memory kernel starting address
-       in order to find the in-memory function address */
-    const KERNEL_ELF_FUNCTIONS_START_OFFSET: u32 = 0x10000;
-    const KERNEL_MEMORY_START_ADDRESS: u32 = 0x100000;
-    let mut address = (handle_error as *const ()) as u32;
-    address = address - KERNEL_ELF_FUNCTIONS_START_OFFSET + KERNEL_MEMORY_START_ADDRESS;
-
-    /* divide by 0 IDT descriptor */
-
-    *(IDT_START_ADDRESS as *mut IDTDescriptor) = IDTDescriptor {
+    *((descriptor_address) as *mut IDTDescriptor) = IDTDescriptor {
         base_low: address as u16,
         selector: 0x0008,
         unused: 0,
         flags: 0b10001110,
         base_high: (address >> 16) as u16,
     };
+}
+
+/// Loads the Interrupts Descriptor Table. The function is unsafe as it directly write into memory addresses (we want the IDT to have a specific position, at 0x11000). Loads the first 32 descriptors.
+pub unsafe fn load_idt() {
+
+    const IDT_REGISTER_ADDRESS: u32 = 0x11100;
+    const IDT_DESCRIPTORS_AMOUNT: usize = 32;
+
+    /* TODO: #121 for now, all the IRQ would trigger the same IR, that simply halts the system;
+       the IR to call should be specific to every IRQ */
+    for index in 0..IDT_DESCRIPTORS_AMOUNT {
+
+        /* "handle_error" must be private in order to get
+           an in-memory address at this line (and not an in-kernel file address) */
+        create_idt_descriptor(index, (handle_error as *const ()) as u32);
+    }
 
     *(IDT_REGISTER_ADDRESS as *mut IDTRegister) = IDTRegister {
-        limit: mem::size_of::<IDTDescriptor>() as u16,
+        limit: (mem::size_of::<IDTDescriptor>() * IDT_DESCRIPTORS_AMOUNT) as u16,
         base: IDT_START_ADDRESS as u32,
     };
 
