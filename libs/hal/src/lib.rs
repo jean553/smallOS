@@ -343,5 +343,14 @@ pub unsafe fn initialize_pit() {
           - 00: counter 0
           - 01: counter 1
           - 10: counter 2
+
+        we start the counter 0, we read and load the low byte first
+        then the low byte when accessing the counter; we use the rate generator,
+        we use simple binary count
+
+        this ICW is sent to the port 0x43, which is the PIT control word port
     */
+    const PIT_ICW: u8 = 0b00110110;
+    asm!("mov al, $0" :: "r" (PIT_ICW) :: "intel");
+    asm!("out 0x43, al" :::: "intel");
 }
