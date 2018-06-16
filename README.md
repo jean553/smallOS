@@ -28,6 +28,8 @@ A very basic OS for self-learning purposes.
 - [Kernel initialization](#kernel-initialization)
     * [Rust video routines calls](#rust-video-routines-calls)
     * [Interrupt Descriptor Table](#interrupt-descriptor-table)
+        - IDT descriptors list
+        - IDT memory location
     * [Programmable Interrupt Controller initialization](#programmable-interrupt-controller-initialization)
         - Architecture
         - Interrupt Routines Lines list
@@ -552,10 +554,26 @@ the message "smallOS" on the screen.
 
 ### Interrupt Descriptor Table
 
-The Interrupt Descriptor Table is loaded.
-The IDT only contains one entry for now, for testing purposes.
-This entry IR (Interrupt Routine) address is simply 0x00000000
-(this will have to be modified in the future).
+#### IDT descriptors list
+
+For now, the HAL IDT library creates the following IDT descriptors:
+
+```
+Offset 0x0000 : triggered by division by 0 -> handled by "handle_error" function
+```
+
+The `handle_error` function is a simple function that just halts the system. It is used as a default IR (Interrupt Routine) for the exceptions. Later, each exception (or at least some exceptions) might have their own IR.
+
+For debugging purposes, it might be useful to execute some specific IR. For instance, forcing a "divide by 0" exception can be performed like this:
+
+```rust
+unsafe {
+    asm!("mov ax, 0" :::: "intel");
+    asm!("div ax" :::: "intel");
+}
+```
+
+#### IDT memory location
 
 The IDT is loaded right after the FAT at 0x11000.
 
