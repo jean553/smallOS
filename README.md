@@ -614,9 +614,9 @@ The IDT is loaded right after the FAT at 0x11000.
          |                      |
          |   IDT descriptors    |
          |                      |
-         +----------------------+0x110FF - 0x11100
+         +----------------------+0x117FF - 0x11800
          |     IDT register     |
-         +----------------------+0x11105 - 0x11106
+         +----------------------+0x11805 - 0x11806
          |                      |
          |         Free         |
          |                      |
@@ -806,7 +806,7 @@ IDT[0x00]=32-Bit Interrupt Gate target=0x0008:0x00101080, DPL=0
 IDT[0x01]=32-Bit Interrupt Gate target=0x0008:0x00101080, DPL=0
 IDT[0x02]=32-Bit Interrupt Gate target=0x0008:0x00101080, DPL=0
 ...
-IDT[0x1f]=32-Bit Interrupt Gate target=0x0008:0x00101080, DPL=0
+IDT[0xff]=32-Bit Interrupt Gate target=0x0008:0x00101080, DPL=0
 ```
 
 Note that if they are loaded correctly, the GDT should contain three entries

@@ -79,11 +79,11 @@ unsafe fn create_idt_descriptor(
     };
 }
 
-/// Loads the Interrupts Descriptor Table. The function is unsafe as it directly write into memory addresses (we want the IDT to have a specific position, at 0x11000). Loads the first 32 descriptors.
+/// Loads the Interrupts Descriptor Table. The function is unsafe as it directly write into memory addresses (we want the IDT to have a specific position, at 0x11000). Loads 256 descriptors.
 pub unsafe fn load_idt() {
 
-    const IDT_REGISTER_ADDRESS: u32 = 0x11100;
-    const IDT_DESCRIPTORS_AMOUNT: usize = 32;
+    const IDT_REGISTER_ADDRESS: u32 = 0x11800;
+    const IDT_DESCRIPTORS_AMOUNT: usize = 256;
 
     /* TODO: #121 for now, all the IRQ would trigger the same IR, that simply halts the system;
        the IR to call should be specific to every IRQ */
