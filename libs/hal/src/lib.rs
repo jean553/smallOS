@@ -54,12 +54,13 @@ pub unsafe fn handle_error() {
 pub unsafe fn load_idt() {
 
     const IDT_START_ADDRESS: u32 = 0x11000;
-    const IDT_REGISTER_ADDRESS: u32 = 0x11008;
+    const IDT_REGISTER_ADDRESS: u32 = 0x11010;
 
     /* calculate the in-memory address of the exceptions handling function;
        first get its in-kernel binary address and then calculates its in-memory address:
        substract the in-kernel address and add the in-memory kernel starting address
-       in order to find the in-memory function address */
+       in order to find the in-memory function address;
+       IMPORTANT: this only works if the HAL library is used by the kernel */
     const KERNEL_ELF_FUNCTIONS_START_OFFSET: u32 = 0x10000;
     const KERNEL_MEMORY_START_ADDRESS: u32 = 0x100000;
     let mut address = (handle_error as *const ()) as u32;
@@ -75,8 +76,16 @@ pub unsafe fn load_idt() {
         base_high: (address >> 16) as u16,
     };
 
+    *((IDT_START_ADDRESS + 0x8) as *mut IDTDescriptor) = IDTDescriptor {
+        base_low: address as u16,
+        selector: 0x0008,
+        unused: 0,
+        flags: 0b10001110,
+        base_high: (address >> 16) as u16,
+    };
+
     *(IDT_REGISTER_ADDRESS as *mut IDTRegister) = IDTRegister {
-        limit: mem::size_of::<IDTDescriptor>() as u16,
+        limit: (mem::size_of::<IDTDescriptor>() * 2) as u16,
         base: IDT_START_ADDRESS as u32,
     };
 
