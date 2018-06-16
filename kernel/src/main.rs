@@ -14,6 +14,7 @@ use hal::{
     load_idt,
     is_intel_cpu,
     initialize_pic,
+    initialize_pit,
 };
 
 /// Halts the system, defined here as it might be required multiple times.
@@ -36,6 +37,10 @@ pub fn _start() -> ! {
     }
 
     initialize_pic();
+
+    unsafe {
+        initialize_pit();
+    }
 
     loop {}
 }
