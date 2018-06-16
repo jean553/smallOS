@@ -316,5 +316,17 @@ pub unsafe fn initialize_pit() {
 
                   Count = 3
 
+           - 011: mode 3 (Square Wave Generator): exactly the same as the mode 2,
+             except that OUT is set to 1 and to 0 half time of the counter value;
+
+                   +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+
+                   |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+            CLK +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+  +
+
+                            +-----------+           +-----------+           +-----------+
+                            |           |           |           |           |           |
+            OUT +-----------+           +-----------+           +-----------+           +
+
+                  Count = 4
     */
 }
