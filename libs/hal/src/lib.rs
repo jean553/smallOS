@@ -297,5 +297,24 @@ pub unsafe fn initialize_pit() {
                        +           +                       +
                       C=4         C=4                 Usuable as
                                                       an interrupt
+
+           - 010: mode 2 (Rate Generator): the countdown goes down from its initial value
+             to 1 and repeats, until GATE is set to 0; everytime the counter reaches 1,
+             OUT is set to 0 and immediately set back to 1 (usuable as an interrupt)
+
+                    +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+
+                    |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+             CLK +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+  +
+
+                          +--------------------------------------------+
+                          |                                            |
+            GATE +--------+                                            +------------------
+
+                          +-----------------+ +---------------+ +---------------+
+                          |                 | |               | |               |
+             OUT +--------+                 +-+               +-+               +---------
+
+                  Count = 3
+
     */
 }
