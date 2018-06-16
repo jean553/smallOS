@@ -612,10 +612,11 @@ The IDT is loaded right after the FAT at 0x11000.
          |                      |
          +----------------------+0x10FFF - 0x11000
          |                      |
-         |         IDT          |
+         |   IDT descriptors    |
          |                      |
-         +----------------------+ end of the IDT
-         |                      |
+         +----------------------+0x110FF - 0x11100
+         |     IDT register     |
+         +----------------------+0x11105 - 0x11106
          |                      |
          |         Free         |
          |                      |
