@@ -251,7 +251,7 @@ pub unsafe fn initialize_pit() {
        bit 0:
            - 0: simple mode, binary counting (x86 PCs usually only use binary mode)
            - 1: BCD mode (Binary Coded Decimal), more complex, no guarantee to work on every architectures,
-       bit 1-3: PIT mode
+       bits 1-3: PIT mode
            - 000: mode 0 (Interrupt on Terminal Count): starts to count down from a given counter value;
                   when the counter is equal to 0, the OUT line is set to 1, and remains at 1 until
                   the counter is manually reset or if a new control word is sent to the PIT
@@ -298,7 +298,7 @@ pub unsafe fn initialize_pit() {
                       C=4         C=4                 Usuable as
                                                       an interrupt
 
-           - 010: mode 2 (Rate Generator): the countdown goes down from its initial value
+           - 010: mode 3 (Rate Generator): the countdown goes down from its initial value
              to 1 and repeats, until GATE is set to 0; everytime the counter reaches 1,
              OUT is set to 0 and immediately set back to 1 (usuable as an interrupt)
 
@@ -328,5 +328,20 @@ pub unsafe fn initialize_pit() {
             OUT +-----------+           +-----------+           +-----------+           +
 
                   Count = 4
+
+          - 100: mode 4 (Software Triggered Strobe)
+          - 101: mode 5 (Hardware Triggered Strobe)
+          (software and hardware triggered strobes are similar and they depend on the GATE value)
+
+        bits 4-5: read/load mode of the 2 bytes counter
+          - 00: lock the counter for reading,
+          - 01: read the high byte only,
+          - 10: read the low byte only,
+          - 11: read the low byte then the high byte
+
+        bits 6-7: counter selection (PIT has three counters available)
+          - 00: counter 0
+          - 01: counter 1
+          - 10: counter 2
     */
 }
