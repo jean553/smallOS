@@ -39,7 +39,7 @@ A very basic OS for self-learning purposes.
 
 ## Tasks in progress
 
- * initialize the PIC and the PIT
+ * initialize the PIT
 
 ## Installation
 
@@ -559,7 +559,11 @@ the message "smallOS" on the screen.
 For now, the HAL IDT library creates the following IDT descriptors:
 
 ```
-Offset 0x0000 : triggered by division by 0 -> handled by "handle_error" function
+Index 0 -> handle_error
+Index 1 -> handle_error
+Index 2 -> handle_error
+...
+Index 255 -> handle_error
 ```
 
 The `handle_error` function is a simple function that just halts the system. It is used as a default IR (Interrupt Routine) for the exceptions. Later, each exception (or at least some exceptions) might have their own IR.
