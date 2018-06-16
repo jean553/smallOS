@@ -778,12 +778,34 @@ These ports are: 0x20, 0xA0, 0x21 and 0xA1.
 
 ### Check GDT and IDT
 
-The content of the GDT and IDT can be checked into the Bochs debugger
-using the following commands:
+Check GDT content:
 
 ```
 info gdt
+```
+
+Expected result:
+
+```
+GDT[0x00]=??? descriptor hi=0x00000000, lo=0x00000000
+GDT[0x01]=Code segment, base=0x00000000, limit=0xffffffff, Execute/Read, Non-Conforming, Accessed, 32-bit
+GDT[0x02]=Data segment, base=0x00000000, limit=0xffffffff, Read/Write, Accessed
+```
+
+Check IDT content:
+
+```
 info idt
+```
+
+Expected result:
+
+```
+IDT[0x00]=32-Bit Interrupt Gate target=0x0008:0x00101080, DPL=0
+IDT[0x01]=32-Bit Interrupt Gate target=0x0008:0x00101080, DPL=0
+IDT[0x02]=32-Bit Interrupt Gate target=0x0008:0x00101080, DPL=0
+...
+IDT[0x1f]=32-Bit Interrupt Gate target=0x0008:0x00101080, DPL=0
 ```
 
 Note that if they are loaded correctly, the GDT should contain three entries
