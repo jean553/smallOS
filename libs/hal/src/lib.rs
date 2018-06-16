@@ -48,6 +48,8 @@ struct IDTDescriptor {
 }
 
 /// General function for any kind of exception/error.
+///
+/// IMPORTANT: must be private in order to return in-memory address when call "handle_error as *const ()"
 unsafe fn handle_error() {
     asm!("hlt");
 }
@@ -81,23 +83,15 @@ unsafe fn create_idt_descriptor(
 pub unsafe fn load_idt() {
 
     const IDT_REGISTER_ADDRESS: u32 = 0x11100;
-
-    /* calculate the in-memory address of the exceptions handling function;
-       first get its in-kernel binary address and then calculates its in-memory address:
-       substract the in-kernel address and add the in-memory kernel starting address
-       in order to find the in-memory function address;
-       IMPORTANT: this only works if the HAL library is used by the kernel */
-    const KERNEL_ELF_FUNCTIONS_START_OFFSET: u32 = 0x10000;
-    const KERNEL_MEMORY_START_ADDRESS: u32 = 0x100000;
-    let mut address = (handle_error as *const ()) as u32;
-    address = address - KERNEL_ELF_FUNCTIONS_START_OFFSET + KERNEL_MEMORY_START_ADDRESS;
-
     const IDT_DESCRIPTORS_AMOUNT: usize = 32;
 
     /* TODO: #121 for now, all the IRQ would trigger the same IR, that simply halts the system;
        the IR to call should be specific to every IRQ */
     for index in 0..IDT_DESCRIPTORS_AMOUNT {
-        create_idt_descriptor(index, address);
+
+        /* "handle_error" must be private in order to get
+           an in-memory address at this line (and not an in-kernel file address) */
+        create_idt_descriptor(index, (handle_error as *const ()) as u32);
     }
 
     *(IDT_REGISTER_ADDRESS as *mut IDTRegister) = IDTRegister {
