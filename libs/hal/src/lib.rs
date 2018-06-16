@@ -237,3 +237,13 @@ pub fn initialize_pic() {
         asm!("out 0xA1, al" :::: "intel");
     }
 }
+
+/// TODO
+fn increment_ticks() {
+}
+
+/// TODO
+pub unsafe fn initialize_pit() {
+
+    create_idt_descriptor(32, (increment_ticks as *const ()) as u32);
+}
