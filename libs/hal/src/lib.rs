@@ -273,7 +273,29 @@ pub unsafe fn initialize_pit() {
                 ICW                  Usuable as           ICW
              Counter = 4             an interrupt    or new counter
 
+           - 001: mode 1 (Hardware Triggered One-shot): the OUT line is set to 1 by default,
+                  when a GATE pulse is sent, the counter starts and the OUT line is set to 0;
+                  any GATE pulse resets the counter; OUT is set to 1 only when the countdown
+                  is finished;
 
-           - 001: mode 1 (Hardware Triggered One-shot): set the OUT line to 1 every n clock cycles
+                    +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+  +
+                    |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+             CLK +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+
+
+                       +-+         +-+                              +-+
+                       | |         | |                              | |
+            GATE +-----+ +---------+ +------------------------------+ +---+
+
+
+             OUT +-----+                                   +--------+
+                       |                                   |        |
+                       +-----------------------------------+        +-----+
+
+                       ^           ^                       ^
+                       |           |                       |
+                       |           |                       |
+                       +           +                       +
+                      C=4         C=4                 Usuable as
+                                                      an interrupt
     */
 }
