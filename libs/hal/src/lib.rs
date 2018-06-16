@@ -246,4 +246,34 @@ fn increment_ticks() {
 pub unsafe fn initialize_pit() {
 
     create_idt_descriptor(32, (increment_ticks as *const ()) as u32);
+
+    /* ICW to send to the PIT for initialization:
+       bit 0:
+           - 0: simple mode, binary counting (x86 PCs usually only use binary mode)
+           - 1: BCD mode (Binary Coded Decimal), more complex, no guarantee to work on every architectures,
+       bit 1-3: PIT mode
+           - 000: mode 0 (Interrupt on Terminal Count): starts to count down from a given counter value;
+                  when the counter is equal to 0, the OUT line is set to 1, and remains at 1 until
+                  the counter is manually reset or if a new control word is sent to the PIT
+                  (this mode is useful for unique countdown)
+
+                    +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+  +
+                    |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+             CLK +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+
+
+                                         +-----------------+
+                                         |                 |
+             OUT +-----------------------+                 +--------+
+
+                 ^                       ^                 ^
+                 |                       |                 |
+                 |                       |                 |
+                 +                       +                 +
+
+                ICW                  Usuable as           ICW
+             Counter = 4             an interrupt    or new counter
+
+
+           - 001: mode 1 (Hardware Triggered One-shot): set the OUT line to 1 every n clock cycles
+    */
 }
