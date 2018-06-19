@@ -34,6 +34,7 @@ A very basic OS for self-learning purposes.
         - Architecture
         - Interrupt Routines Lines list
         - Initialization Control Words
+    * [Programmable Interrupt Timer initialization](#programmable-interrupt-timer-initialization)
 - [Debug](#debug)
     * [Check GDT and IDT](#check-gdt-and-idt)
 
@@ -778,6 +779,26 @@ Check the code documentation directly for details.
 
 These messages are bytes. They are sent directly to the ports that are used to communicate with the PICs.
 These ports are: 0x20, 0xA0, 0x21 and 0xA1.
+
+## Programmable Interrupt Timer initialization
+
+There are many modes for the PIT. We use `Square Wave Generator` mode.
+Using this mode, the PIT OUT line is set to 1 during a given amount of clock cycles (defined counts),
+and it is set back to 0 during this same amount of ticks.
+
+```
+       +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+
+       |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+CLK +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+  +--+  +
+
+                +-----------+           +-----------+           +-----------+
+                |           |           |           |           |           |
+OUT +-----------+           +-----------+           +-----------+           +
+
+      Count = 4
+```
+
+(different modes are described into the `libs/hal/src/lib.src` file)
 
 ## Debug
 
