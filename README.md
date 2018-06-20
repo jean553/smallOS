@@ -798,7 +798,7 @@ OUT +-----------+           +-----------+           +-----------+           +
       Count = 4
 ```
 
-(different modes are described into the `libs/hal/src/lib.src` file)
+(different modes are described into the `libs/hal/src/lib.rs` file)
 
 ## Debug
 
