@@ -37,6 +37,8 @@ A very basic OS for self-learning purposes.
     * [Programmable Interrupt Timer initialization](#programmable-interrupt-timer-initialization)
 - [Debug](#debug)
     * [Check GDT and IDT](#check-gdt-and-idt)
+    * [UI debugger](#ui-debugger)
+    * [Logs](#logs)
 
 ## Tasks in progress
 
@@ -836,3 +838,19 @@ IDT[0xff]=32-Bit Interrupt Gate target=0x0008:0x00101080, DPL=0
 
 Note that if they are loaded correctly, the GDT should contain three entries
 and the IDT should contain one entry.
+
+### UI Debugger
+
+Enable the UI debugger by adding the following line into the `.bochsrc` file:
+
+```
+display_library: x, options="gui_debug"
+```
+
+### Logs
+
+Enable logs of one specific hardware item. For instance, PIT:
+
+```
+debug: action=ignore, pit=report
+```
