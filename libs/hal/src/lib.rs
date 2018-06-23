@@ -177,7 +177,11 @@ pub fn initialize_pic() {
      * the following height indices are set on the slave PIC;
      *
      * these indices must be sent to PIC data port address
-     * (0x21 for the primary and 0xA1 for the secondary) */
+     * (0x21 for the primary and 0xA1 for the secondary)
+     *
+     * FIXME: it seems impossible to change the IRQ base index
+     * for both of the master and slave PICs
+     * (they always stay at 0x20 and 0x28 respectively) */
     const MASTER_PIC_IRQ_BASE_INDEX: u8 = 0x20;
     const SLAVE_PIC_IRQ_BASE_INDEX: u8 = 0x28;
     unsafe {
