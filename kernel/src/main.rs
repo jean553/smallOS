@@ -11,10 +11,13 @@ use video::{
 };
 
 use hal::{
+    disable_interrupts,
+    enable_interrupts,
     load_idt,
     is_intel_cpu,
     initialize_pic,
     initialize_pit,
+    get_ticks_amount,
 };
 
 /// Halts the system, defined here as it might be required multiple times.
@@ -29,20 +32,24 @@ pub fn _start() -> ! {
     print(0, "smallOS");
     print(80, "version 1.0");
 
-    unsafe { load_idt(); }
+    load_idt();
 
     if !is_intel_cpu() {
         print(160, "CPU type is not supported ! (Intel only)");
         halt();
     }
 
+    unsafe { disable_interrupts(); }
     initialize_pic();
+    initialize_pit();
+    unsafe { enable_interrupts(); }
 
-    unsafe {
-        initialize_pit();
+    loop {
+        unsafe {
+            /* cannot convert u16 to &str, temporary solution */
+            asm!("mov ax, $0" :: "r" (get_ticks_amount()) :: "intel");
+        }
     }
-
-    loop {}
 }
 
 /// Defines how to unwind the stack allocated objects on panic. This function is required when no standard library is used, but as the kernel is bare-metal for now, we keep things simple and do not take any specific action to unwind the stack on panic.

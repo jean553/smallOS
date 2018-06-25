@@ -54,13 +54,23 @@ unsafe fn handle_error() {
     asm!("hlt");
 }
 
+/// Disable interrupts.
+pub unsafe fn disable_interrupts() {
+    asm!("cli" :::: "intel");
+}
+
+/// Enable interrupts.
+pub unsafe fn enable_interrupts() {
+    asm!("sti" :::: "intel");
+}
+
 /// Loads one IDT descriptor at the given index into the IDT. An IRQ at this index would call the IR at the given address.
 ///
 /// Args:
 ///
 /// `index` - the index of the IDT descriptor
 /// `address` - the base address of the IR for the current entry
-unsafe fn create_idt_descriptor(
+fn create_idt_descriptor(
     index: usize,
     address: u32,
 ) {
@@ -70,17 +80,19 @@ unsafe fn create_idt_descriptor(
         IDT_DESCRIPTOR_SIZE * (index as u32)
     );
 
-    *((descriptor_address) as *mut IDTDescriptor) = IDTDescriptor {
-        base_low: address as u16,
-        selector: 0x0008,
-        unused: 0,
-        flags: 0b10001110,
-        base_high: (address >> 16) as u16,
-    };
+    unsafe {
+        *((descriptor_address) as *mut IDTDescriptor) = IDTDescriptor {
+            base_low: address as u16,
+            selector: 0x0008,
+            unused: 0,
+            flags: 0b10001110,
+            base_high: (address >> 16) as u16,
+        };
+    }
 }
 
 /// Loads the Interrupts Descriptor Table. The function is unsafe as it directly write into memory addresses (we want the IDT to have a specific position, at 0x11000). Loads 256 descriptors.
-pub unsafe fn load_idt() {
+pub fn load_idt() {
 
     const IDT_REGISTER_ADDRESS: u32 = 0x11800;
     const IDT_DESCRIPTORS_AMOUNT: usize = 256;
@@ -89,17 +101,21 @@ pub unsafe fn load_idt() {
        the IR to call should be specific to every IRQ */
     for index in 0..IDT_DESCRIPTORS_AMOUNT {
 
-        /* "handle_error" must be private in order to get
-           an in-memory address at this line (and not an in-kernel file address) */
-        create_idt_descriptor(index, (handle_error as *const ()) as u32);
+        unsafe {
+            /* "handle_error" must be private in order to get
+               an in-memory address at this line (and not an in-kernel file address) */
+            create_idt_descriptor(index, (handle_error as *const ()) as u32);
+        }
     }
 
-    *(IDT_REGISTER_ADDRESS as *mut IDTRegister) = IDTRegister {
-        limit: (mem::size_of::<IDTDescriptor>() * IDT_DESCRIPTORS_AMOUNT) as u16,
-        base: IDT_START_ADDRESS as u32,
-    };
+    unsafe {
+        *(IDT_REGISTER_ADDRESS as *mut IDTRegister) = IDTRegister {
+            limit: (mem::size_of::<IDTDescriptor>() * IDT_DESCRIPTORS_AMOUNT) as u16,
+            base: IDT_START_ADDRESS as u32,
+        };
 
-    asm!("lidt ($0)" :: "r" (IDT_REGISTER_ADDRESS));
+        asm!("lidt ($0)" :: "r" (IDT_REGISTER_ADDRESS));
+    }
 }
 
 /// Indicates if the CPU vendor is Intel (smallOS only works with Intel CPU)
@@ -240,14 +256,39 @@ pub fn initialize_pic() {
         asm!("out 0x21, al" :::: "intel");
         asm!("out 0xA1, al" :::: "intel");
     }
+
 }
 
-/// TODO
-fn increment_ticks() {
+/// Increments the ticks amount, called everytime the PIC receives an IRQ from the PIT.
+///
+/// Unsafe as it manipulates mutable static.
+unsafe fn increment_ticks() {
+
+    /* increment the ticks amount */
+    *(0x11806 as *mut u16) += 1;
+
+    /* signal the PIC that the interrupts is finished */
+    asm!("mov al, 0x20" :::: "intel");
+    asm!("out 0x20, al" :::: "intel");
+
+    /* this is an interrupt handler, so EFLAGS, CS and EIP
+       have to be popped from the stack before returning
+       to the main code, so we use iretd */
+    asm!("iretd" :::: "intel");
 }
 
-/// TODO
-pub unsafe fn initialize_pit() {
+/// Returns the current ticks amount.
+///
+/// Returns:
+///
+/// current ticks amount
+pub unsafe fn get_ticks_amount() -> u16 {
+    *(0x11806 as *mut u16)
+}
+
+/// Initializes the Programmable Interrupt Timer, starts one of the three counters,
+/// sets the counter reading mode and sets the PIT runner mode
+pub fn initialize_pit() {
 
     create_idt_descriptor(32, (increment_ticks as *const ()) as u32);
 
@@ -352,9 +393,24 @@ pub unsafe fn initialize_pit() {
         then the low byte when accessing the counter; we use the rate generator,
         we use simple binary count
 
-        this ICW is sent to the port 0x43, which is the PIT control word port
-    */
-    const PIT_ICW: u8 = 0b00110110;
-    asm!("mov al, $0" :: "r" (PIT_ICW) :: "intel");
-    asm!("out 0x43, al" :::: "intel");
+        this ICW is sent to the port 0x43, which is the PIT control word port */
+    const PIT_ICW: u8 = 0b00110100;
+    unsafe {
+        asm!("mov al, $0" :: "r" (PIT_ICW) :: "intel");
+        asm!("out 0x43, al" :::: "intel");
+    }
+
+    /* TODO: #131 explain why we choose this frequency + the ports and the actions */
+    const FREQUENCY: u16 = 11932;
+    unsafe {
+        asm!("mov al, $0" :: "r" ((FREQUENCY & 0xff) as u8) :: "intel");
+        asm!("out 0x40, al" :::: "intel");
+        asm!("mov al, $0" :: "r" (((FREQUENCY >> 8) & 0xff) as u8) :: "intel");
+        asm!("out 0x40, al" :::: "intel");
+    }
+
+    unsafe {
+        /* initialize timer at value 0 */
+        *(0x11806 as *mut u16) = 0;
+    }
 }
