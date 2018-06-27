@@ -264,12 +264,17 @@ pub fn initialize_pic() {
 /// Unsafe as it manipulates mutable static.
 unsafe fn increment_ticks() {
 
+    /* ax is the only modified register during the interrupt handler execution */
+    asm!("push ax" :::: "intel");
+
     /* increment the ticks amount */
     *(0x11806 as *mut u16) += 1;
 
     /* signal the PIC that the interrupts is finished */
     asm!("mov al, 0x20" :::: "intel");
     asm!("out 0x20, al" :::: "intel");
+
+    asm!("pop ax" :::: "intel");
 
     /* this is an interrupt handler, so EFLAGS, CS and EIP
        have to be popped from the stack before returning
