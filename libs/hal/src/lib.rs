@@ -426,18 +426,19 @@ pub fn initialize_pit() {
         );
     }
 
-    /* TODO: #131 explain why we choose this frequency + the ports and the actions */
-    const FREQUENCY: u16 = 11932;
+    /* we want a frequency of 100 Hz, throw an interrupt every 10 ms,
+       so we divide the default frequency 1193180 by 100 */
+    const COUNT: u16 = 11932;
     unsafe {
         asm!("
             mov al, $0
             out 0x40, al
-            " :: "r" ((FREQUENCY & 0xff) as u8) :: "intel"
+            " :: "r" ((COUNT & 0xff) as u8) :: "intel"
         );
         asm!("
             mov al, $0
             out 0x40, al
-            " :: "r" (((FREQUENCY >> 8) & 0xff) as u8) :: "intel"
+            " :: "r" (((COUNT >> 8) & 0xff) as u8) :: "intel"
         );
     }
 
