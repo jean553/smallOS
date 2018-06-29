@@ -80,16 +80,27 @@ pub unsafe fn printi(offset: u32, mut value: u16) {
 
     let mut offset: u32 = 0xB8000 + (offset * 2) as u32;
     let mut divisor: u16 = 10000;
+    let mut prefix_zeros: bool = true;
 
     for _ in 0..DIGITS_AMOUNT {
 
+        let result = value / divisor;
+
+        value = value % divisor;
+        divisor = divisor / DIVISOR_STEPS;
+
+        if result == 0 &&
+            prefix_zeros {
+            continue;
+        }
+
+        prefix_zeros = false;
+
         printb(
             offset,
-            (value / divisor + ASCII_OFFSET) as u8
+            (result + ASCII_OFFSET) as u8
         );
 
         offset += OFFSET_STEP;
-        value = value % divisor;
-        divisor = divisor / DIVISOR_STEPS;
     }
 }
