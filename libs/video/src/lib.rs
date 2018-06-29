@@ -17,7 +17,10 @@ pub fn print(offset: u16, string: &str) {
     for byte in string.bytes() {
 
         unsafe {
-            *((offset) as *mut u8) = byte as u8;
+            printb(
+                offset,
+                byte as u8
+            );
         }
 
         offset += 2;
@@ -50,4 +53,13 @@ pub fn clear_screen() {
         unsafe { *((offset) as *mut u8) = ITEM_COLOR };
         offset += 1;
     }
+}
+
+/// Prints the given byte on screen at the given offset.
+pub unsafe fn printb(offset: u32, byte: u8) {
+    *((offset) as *mut u8) = byte;
+}
+
+/// Prints the given number on screen at the given offset.
+pub fn printi(offset: u32, value: u16) {
 }
