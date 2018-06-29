@@ -130,8 +130,11 @@ pub fn is_intel_cpu() -> bool {
        the ebx value as it should be 0x756E6547
        for Intel */
     unsafe {
-        asm!("mov eax, 0" :::: "intel");
-        asm!("cpuid" : "={ebx}"(vendor_name_first_part) :::);
+        asm!("
+            mov eax, 0
+            cpuid
+            " : "={ebx}"(vendor_name_first_part) ::: "intel"
+        );
     }
 
     const INTEL_VENDOR: u32 = 0x756E6547;
@@ -169,13 +172,14 @@ pub fn initialize_pic() {
      * (PIC command port address is used for ICW1) */
     const PIC_FIRST_ICW: u8 = 0b00010001;
     unsafe {
-        asm!("mov al, $0" :: "r" (PIC_FIRST_ICW) :: "intel");
 
-        /* master PIC initialization */
-        asm!("out 0x20, al" :::: "intel");
-
-        /* slave PIC initialization */
-        asm!("out 0xA0, al" :::: "intel");
+        /* master and slave PIC initialization */
+        asm!("
+            mov al, $0
+            out 0x20, al
+            out 0xA0, al
+            " :: "r" (PIC_FIRST_ICW) :: "intel"
+        );
     }
 
     /* send the second ICW (first PIC data port call) with the following properties:
@@ -200,12 +204,18 @@ pub fn initialize_pic() {
     const SLAVE_PIC_IRQ_BASE_INDEX: u8 = 0x28;
     unsafe {
         /* set the master PIC IRQs base index */
-        asm!("mov al, $0" :: "r" (MASTER_PIC_IRQ_BASE_INDEX) :: "intel");
-        asm!("out 0x21, al" :::: "intel");
+        asm!("
+            mov al, $0
+            out 0x21, al
+            " :: "r" (MASTER_PIC_IRQ_BASE_INDEX) :: "intel"
+        );
 
         /* set the secondary PIC IRQs base index */
-        asm!("mov al, $0" :: "r" (SLAVE_PIC_IRQ_BASE_INDEX) :: "intel");
-        asm!("out 0xA1, al" :::: "intel");
+        asm!("
+            mov al, $0
+            out 0xA1, al
+            " :: "r" (SLAVE_PIC_IRQ_BASE_INDEX) :: "intel"
+        );
     }
 
     /* send the third ICW (second PIC data port call) with the following properties:
@@ -230,12 +240,18 @@ pub fn initialize_pic() {
     const SECOND_TO_MASTER_PIC_SELECTOR: u8 = 2;
     unsafe {
         /* connect the master PIC to the slave PIC */
-        asm!("mov al, $0" :: "r" (MASTER_TO_SECOND_PIC_SELECTOR) :: "intel");
-        asm!("out 0x21, al" :::: "intel");
+        asm!("
+            mov al, $0
+            out 0x21, al
+            " :: "r" (MASTER_TO_SECOND_PIC_SELECTOR) :: "intel"
+        );
 
         /* connect the slave PIC to the master PIC */
-        asm!("mov al, $0" :: "r" (SECOND_TO_MASTER_PIC_SELECTOR) :: "intel");
-        asm!("out 0xA1, al" :::: "intel");
+        asm!("
+            mov al, $0
+            out 0xA1, al
+            " :: "r" (SECOND_TO_MASTER_PIC_SELECTOR) :: "intel"
+        );
     }
 
     /* send the fourth ICW (third PIC data port call) with the following properties:
@@ -250,9 +266,12 @@ pub fn initialize_pic() {
      * without fully nested mode, without buffering (we keep things simple for now) */
     const PIC_FOURTH_ICW: u8 = 0b00000001;
     unsafe {
-        asm!("mov al, $0" :: "r" (PIC_FOURTH_ICW) :: "intel");
-        asm!("out 0x21, al" :::: "intel");
-        asm!("out 0xA1, al" :::: "intel");
+        asm!("
+            mov al, $0
+            out 0x21, al
+            out 0xA1, al
+            " :: "r" (PIC_FOURTH_ICW) :: "intel"
+        );
     }
 
 }
@@ -268,16 +287,17 @@ unsafe fn increment_ticks() {
     /* increment the ticks amount */
     *(0x11806 as *mut u16) += 1;
 
-    /* signal the PIC that the interrupts is finished */
-    asm!("mov al, 0x20" :::: "intel");
-    asm!("out 0x20, al" :::: "intel");
-
-    asm!("pop ax" :::: "intel");
-
-    /* this is an interrupt handler, so EFLAGS, CS and EIP
+    /* signal the PIC that the interrupts is finished,
+       this is an interrupt handler, so EFLAGS, CS and EIP
        have to be popped from the stack before returning
        to the main code, so we use iretd */
-    asm!("iretd" :::: "intel");
+    asm!("
+        mov al, 0x20
+        out 0x20, al
+        pop ax
+        iretd
+        " :::: "intel"
+    );
 }
 
 /// Returns the current ticks amount.
@@ -399,17 +419,26 @@ pub fn initialize_pit() {
         this ICW is sent to the port 0x43, which is the PIT control word port */
     const PIT_ICW: u8 = 0b00110100;
     unsafe {
-        asm!("mov al, $0" :: "r" (PIT_ICW) :: "intel");
-        asm!("out 0x43, al" :::: "intel");
+        asm!("
+            mov al, $0
+            out 0x43, al
+            " :: "r" (PIT_ICW) :: "intel"
+        );
     }
 
     /* TODO: #131 explain why we choose this frequency + the ports and the actions */
     const FREQUENCY: u16 = 11932;
     unsafe {
-        asm!("mov al, $0" :: "r" ((FREQUENCY & 0xff) as u8) :: "intel");
-        asm!("out 0x40, al" :::: "intel");
-        asm!("mov al, $0" :: "r" (((FREQUENCY >> 8) & 0xff) as u8) :: "intel");
-        asm!("out 0x40, al" :::: "intel");
+        asm!("
+            mov al, $0
+            out 0x40, al
+            " :: "r" ((FREQUENCY & 0xff) as u8) :: "intel"
+        );
+        asm!("
+            mov al, $0
+            out 0x40, al
+            " :: "r" (((FREQUENCY >> 8) & 0xff) as u8) :: "intel"
+        );
     }
 
     unsafe {
