@@ -101,11 +101,9 @@ pub fn load_idt() {
        the IR to call should be specific to every IRQ */
     for index in 0..IDT_DESCRIPTORS_AMOUNT {
 
-        unsafe {
-            /* "handle_error" must be private in order to get
-               an in-memory address at this line (and not an in-kernel file address) */
-            create_idt_descriptor(index, (handle_error as *const ()) as u32);
-        }
+        /* "handle_error" must be private in order to get
+           an in-memory address at this line (and not an in-kernel file address) */
+        create_idt_descriptor(index, (handle_error as *const ()) as u32);
     }
 
     unsafe {

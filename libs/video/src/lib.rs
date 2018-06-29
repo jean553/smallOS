@@ -1,5 +1,5 @@
 //! SmallOS video library
-#![feature(lang_items)]
+#![feature(lang_items, asm)]
 #![no_std]
 
 extern crate rlibc;
@@ -17,7 +17,10 @@ pub fn print(offset: u16, string: &str) {
     for byte in string.bytes() {
 
         unsafe {
-            *((offset) as *mut u8) = byte as u8;
+            printb(
+                offset,
+                byte as u8
+            );
         }
 
         offset += 2;
@@ -49,5 +52,44 @@ pub fn clear_screen() {
         offset += 1;
         unsafe { *((offset) as *mut u8) = ITEM_COLOR };
         offset += 1;
+    }
+}
+
+/// Prints the given byte on screen at the given offset.
+///
+/// Args:
+///
+/// `offset` - starting character offset (from the top left corner), resolution 80 x 25 characters
+/// `byte` - the byte to display
+pub unsafe fn printb(offset: u32, byte: u8) {
+    *((offset) as *mut u8) = byte;
+}
+
+/// Prints the given number on screen at the given offset.
+///
+/// Args:
+///
+/// `offset` - starting character offset (from the top left corner), resolution 80 x 25 characters
+/// `value` - the numeric value to display
+pub unsafe fn printi(offset: u32, mut value: u16) {
+
+    const ASCII_OFFSET: u16 = 48;
+    const DIVISOR_STEPS: u16 = 10;
+    const OFFSET_STEP: u32 = 2;
+    const DIGITS_AMOUNT: usize = 5;
+
+    let mut offset: u32 = 0xB8000 + (offset * 2) as u32;
+    let mut divisor: u16 = 10000;
+
+    for _ in 0..DIGITS_AMOUNT {
+
+        printb(
+            offset,
+            (value / divisor + ASCII_OFFSET) as u8
+        );
+
+        offset += OFFSET_STEP;
+        value = value % divisor;
+        divisor = divisor / DIVISOR_STEPS;
     }
 }

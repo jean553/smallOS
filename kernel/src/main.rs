@@ -7,6 +7,7 @@ extern crate hal;
 
 use video::{
     print,
+    printi,
     clear_screen,
 };
 
@@ -46,8 +47,7 @@ pub fn _start() -> ! {
 
     loop {
         unsafe {
-            /* cannot convert u16 to &str, temporary solution */
-            asm!("mov ax, $0" :: "r" (get_ticks_amount()) :: "intel");
+            printi(240, get_ticks_amount());
         }
     }
 }
