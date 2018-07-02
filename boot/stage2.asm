@@ -155,6 +155,7 @@ start:
     call load_file
 
     ; it is mandatory to clear every BIOS interrupt before loading GDT
+    ; and before switching into protected mode
     cli
 
     ; load the GDT into GDTR register
@@ -180,7 +181,6 @@ start:
     out 0x92, al
 
     ; switch into protected mode (32 bits)
-    cli
     mov eax, cr0
     or eax, 0000000000000001b   ; only update the first bit of cr0 to 1 to switch to pmode
     mov cr0, eax
