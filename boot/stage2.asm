@@ -154,7 +154,14 @@ start:
 
     call load_file
 
+    ; get the memory size in order to be displayed during the kernel loading process;
+    ; we do it here into stage2 as we can simply use the dedicated BIOS interrupt
+    ; TODO: pass this amount to the kernel for display
+    mov ah, 0x88            ; function to get the amount of extended memory in KB (after 1MB)
+    int 0x15                ; BIOS interrupt call
+
     ; it is mandatory to clear every BIOS interrupt before loading GDT
+    ; and before switching into protected mode
     cli
 
     ; load the GDT into GDTR register
@@ -180,7 +187,6 @@ start:
     out 0x92, al
 
     ; switch into protected mode (32 bits)
-    cli
     mov eax, cr0
     or eax, 0000000000000001b   ; only update the first bit of cr0 to 1 to switch to pmode
     mov cr0, eax
