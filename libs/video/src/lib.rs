@@ -67,19 +67,21 @@ pub unsafe fn printb(offset: u32, byte: u8) {
 
 /// Prints the given number on screen at the given offset.
 ///
+/// TODO: similar to printi, should be refactored
+///
 /// Args:
 ///
 /// `offset` - starting character offset (from the top left corner), resolution 80 x 25 characters
 /// `value` - the numeric value to display
-pub unsafe fn printi(offset: u32, mut value: u16) {
+pub fn printi32(offset: u32, mut value: u32) {
 
-    const ASCII_OFFSET: u16 = 48;
-    const DIVISOR_STEPS: u16 = 10;
+    const ASCII_OFFSET: u32 = 48;
+    const DIVISOR_STEPS: u32 = 10;
     const OFFSET_STEP: u32 = 2;
-    const DIGITS_AMOUNT: usize = 5;
+    const DIGITS_AMOUNT: usize = 10;
 
     let mut offset: u32 = 0xB8000 + (offset * 2) as u32;
-    let mut divisor: u16 = 10000;
+    let mut divisor: u32 = 1000000000;
     let mut prefix_zeros: bool = true;
 
     for _ in 0..DIGITS_AMOUNT {
@@ -96,10 +98,12 @@ pub unsafe fn printi(offset: u32, mut value: u16) {
 
         prefix_zeros = false;
 
-        printb(
-            offset,
-            (result + ASCII_OFFSET) as u8
-        );
+        unsafe {
+            printb(
+                offset,
+                (result + ASCII_OFFSET) as u8
+            );
+        }
 
         offset += OFFSET_STEP;
     }

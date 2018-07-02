@@ -7,7 +7,7 @@ extern crate hal;
 
 use video::{
     print,
-    printi,
+    printi32,
     clear_screen,
 };
 
@@ -19,6 +19,7 @@ use hal::{
     initialize_pic,
     initialize_pit,
     get_ticks_amount,
+    get_ram_amount,
 };
 
 /// Halts the system, defined here as it might be required multiple times.
@@ -40,14 +41,29 @@ pub fn _start() -> ! {
         halt();
     }
 
+    let ram_amount = unsafe {
+        get_ram_amount()
+    };
+
+    print(240, "Detected RAM amount (bytes):");
+    printi32(320, ram_amount);
+
+    const REQUIRED_RAM_AMOUNT: u32 = 15360000;
+    if ram_amount != REQUIRED_RAM_AMOUNT {
+        print(400, "SmallOS requires 15360 KBytes in RAM exactly !");
+        halt();
+    }
+
     unsafe { disable_interrupts(); }
     initialize_pic();
     initialize_pit();
     unsafe { enable_interrupts(); }
 
+    print(480, "Current time tick:");
+
     loop {
         unsafe {
-            printi(240, get_ticks_amount());
+            printi32(560, get_ticks_amount());
         }
     }
 }
