@@ -41,8 +41,18 @@ pub fn _start() -> ! {
         halt();
     }
 
+    let ram_amount = unsafe {
+        get_ram_amount()
+    };
+
     print(240, "Detected RAM amount (bytes):");
-    printi32(320, unsafe { get_ram_amount() } );
+    printi32(320, ram_amount);
+
+    const REQUIRED_RAM_AMOUNT: u32 = 15360000;
+    if ram_amount != REQUIRED_RAM_AMOUNT {
+        print(400, "SmallOS requires 15360 KBytes in RAM exactly !");
+        halt();
+    }
 
     unsafe { disable_interrupts(); }
     initialize_pic();
