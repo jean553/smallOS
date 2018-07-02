@@ -7,7 +7,6 @@ extern crate hal;
 
 use video::{
     print,
-    printi,
     printi32,
     clear_screen,
 };
@@ -54,7 +53,7 @@ pub fn _start() -> ! {
 
     loop {
         unsafe {
-            printi(560, get_ticks_amount());
+            printi32(560, get_ticks_amount());
         }
     }
 }
