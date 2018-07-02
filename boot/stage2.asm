@@ -159,11 +159,11 @@ start:
     mov ah, 0x88            ; function to get the amount of extended memory in KB (after 1MB)
     int 0x15                ; BIOS interrupt call
 
-    ; store the RAM amount for kernel usage into 0x11808 (0x1180:0x0008).
+    ; store the RAM amount for kernel usage into 0x1180A (0x1180:0x000A).
     push ds
-    mov bx, 0x1180
+    mov bx, 0x1180 
     mov ds, bx
-    mov [0x0008], ax
+    mov [0x000A], ax
     pop ds
 
     ; it is mandatory to clear every BIOS interrupt before loading GDT
