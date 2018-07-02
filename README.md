@@ -35,6 +35,8 @@ A very basic OS for self-learning purposes.
         - Interrupt Routines Lines list
         - Initialization Control Words
     * [Programmable Interrupt Timer initialization](#programmable-interrupt-timer-initialization)
+- [Get the memory amount](#get-the-memory-amount)
+- [Kernel global variables](#kernel-global-variables)
 - [Debug](#debug)
     * [Check GDT and IDT](#check-gdt-and-idt)
     * [UI debugger](#ui-debugger)
@@ -801,6 +803,91 @@ OUT +-----------+           +-----------+           +-----------+           +
 ```
 
 (different modes are described into the `libs/hal/src/lib.rs` file)
+
+## Get the memory amount
+
+The virtual machine is emulated with 16 Mbytes of RAM.
+During `stage2`, the system checks the amount of installed RAM and stores it into `0x11808`,
+just behind the PIT ticks amount.
+
+## Kernel global variables
+
+A specific area on memory, starting from `0x11806`, storing useful variables for the kernel
+and in order to pass data to the kernel.
+
+ * 0x11806: current PIT ticks amount (updated py the PIC continuously)
+ * 0x11808: detected amount of memory (in KBytes), detected by Stage2 and used by the kernel
+
+```
+         +----------------------+0x0000
+         |                      |
+         |         IVT          |
+         |                      |
+         +----------------------+0x03FF - 0x0400
+         |         BIOS         |
+         +----------------------+0x04FF - 0x0500
+         |        stack         |
+         +----------------------+0x09FF - 0x0A00
+         |                      |
+         |        Free          |
+         |                      |
+         +----------------------+0x7BFF - 0x7C00
+         |       boot.bin       |
+         +----------------------+0x7DFF - 0x7E00
+         |                      |
+         |       stage2.bin     |
+         |                      |
+         +----------------------+0x85FF - 0x8600
+         |                      |
+         |                      |
+         |         Free         |
+         |                      |
+         |                      |
+         +----------------------+0x9FFF - 0xA000
+         |                      |
+         |    Root directory    |
+         |                      |
+         +----------------------+0xE7FF - 0xE800
+         |                      |
+         |         FAT          |
+         |                      |
+         +----------------------+0x10FFF - 0x11000
+         |                      |
+         |   IDT descriptors    |
+         |                      |
+         +----------------------+0x117FF - 0x11800
+         |     IDT register     |
+         +----------------------+0x11805 - 0x11806
+         |     Ticks amount     |
+         +----------------------+0x11807 - 0x11808
+         |     Memory amount    |
+         +----------------------+0x11809 - 0x1180A
+         |                      |
+         |         Free         |
+         |                      |
+         |                      |
+         +----------------------+ ... <- top of the stack
+         |                      |
+         |        Stack         |
+         |                      |
+         +----------------------+0x9FFEF - 0x9FFF0
+         |                      |
+         |         Free         |
+         |                      |
+         +----------------------+0x9FFFF - OxA0000
+         |         Used         |
+         |                      |
+         +----------------------+0xFFFFF - 0x100000
+         |        Kernel        |
+         |                      |
+         +----------------------+ end of the kernel
+         |                      |
+         |                      |
+         |         Free         |
+         |                      |
+         |                      |
+         +----------------------+0xFFFFFFFF
+```
 
 ## Debug
 
