@@ -816,7 +816,7 @@ A specific area on memory, starting from `0x11806`, storing useful variables for
 and in order to pass data to the kernel.
 
  * 0x11806: current PIT ticks amount (updated py the PIC continuously)
- * 0x11808: detected amount of memory (in KBytes), detected by Stage2 and used by the kernel
+ * 0x1180A: detected amount of memory (in KBytes), detected by Stage2 and used by the kernel
 
 ```
          +----------------------+0x0000
@@ -859,9 +859,9 @@ and in order to pass data to the kernel.
          |     IDT register     |
          +----------------------+0x11805 - 0x11806
          |     Ticks amount     |
-         +----------------------+0x11807 - 0x11808
-         |     Memory amount    |
          +----------------------+0x11809 - 0x1180A
+         |     Memory amount    |
+         +----------------------+0x1180D - 0x1180E
          |                      |
          |         Free         |
          |                      |

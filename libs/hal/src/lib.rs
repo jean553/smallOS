@@ -285,7 +285,7 @@ unsafe fn increment_ticks() {
     asm!("push ax" :::: "intel");
 
     /* increment the ticks amount */
-    *(0x11806 as *mut u16) += 1;
+    *(0x11806 as *mut u32) += 1;
 
     /* signal the PIC that the interrupts is finished,
        this is an interrupt handler, so EFLAGS, CS and EIP
@@ -308,7 +308,7 @@ unsafe fn increment_ticks() {
 pub unsafe fn get_ram_amount() -> u32 {
 
     /* multiplied by 1000 as stage2 stores value in Kbytes */
-    *(0x11808 as *mut u32) * 1000
+    *(0x1180A as *mut u32) * 1000
 }
 
 /// Returns the current ticks amount.
@@ -316,8 +316,8 @@ pub unsafe fn get_ram_amount() -> u32 {
 /// Returns:
 ///
 /// current ticks amount
-pub unsafe fn get_ticks_amount() -> u16 {
-    *(0x11806 as *mut u16)
+pub unsafe fn get_ticks_amount() -> u32 {
+    *(0x11806 as *mut u32)
 }
 
 /// Initializes the Programmable Interrupt Timer, starts one of the three counters,
