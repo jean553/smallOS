@@ -7,3 +7,6 @@ boot: disk
 # the `cpuid` instruction MUST return "GenuineIntel"
 # as it would do on any Intel CPU machine
 cpuid: vendor_string=GenuineIntel
+
+# there are 16MB RAM installed
+memory: guest=16, host=16
