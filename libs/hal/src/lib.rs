@@ -300,6 +300,17 @@ unsafe fn increment_ticks() {
     );
 }
 
+/// Returns the RAM amount found by the BIOS.
+///
+/// Returns:
+///
+/// RAM amount in bytes
+pub unsafe fn get_ram_amount() -> u32 {
+
+    /* multiplied by 1000 as stage2 stores value in Kbytes */
+    *(0x11808 as *mut u32) * 1000
+}
+
 /// Returns the current ticks amount.
 ///
 /// Returns:
