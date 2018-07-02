@@ -156,9 +156,15 @@ start:
 
     ; get the memory size in order to be displayed during the kernel loading process;
     ; we do it here into stage2 as we can simply use the dedicated BIOS interrupt
-    ; TODO: pass this amount to the kernel for display
     mov ah, 0x88            ; function to get the amount of extended memory in KB (after 1MB)
     int 0x15                ; BIOS interrupt call
+
+    ; store the RAM amount for kernel usage into 0x11808 (0x1180:0x0008).
+    push ds
+    mov bx, 0x1180
+    mov ds, bx
+    mov [0x0008], ax
+    pop ds
 
     ; it is mandatory to clear every BIOS interrupt before loading GDT
     ; and before switching into protected mode
