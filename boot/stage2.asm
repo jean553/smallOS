@@ -1,5 +1,6 @@
 ;-----------------------------------------------------------------------------
 ; stage2 section
+; - get RAM amount and store it
 ; - loads the Global Descriptor Table
 ; - loads the kernel from disk to memory
 ; - enable A20 for 32 bits-long addresses
@@ -28,12 +29,24 @@ jmp start
 ; ----------------------------------------------------------------------------
 
 kernel              db "KERNEL  BIN"
+mem_map_error_msg   db "Memory mapping error", 0
 
 ; -----------------------------------------------------------------
 ; Inclusions
 ; -----------------------------------------------------------------
 
 %include 'io.asm'   ; IO routines
+
+; -----------------------------------------------------------------
+; Memory map error handler
+; (called when get the memory map throws an error)
+; -----------------------------------------------------------------
+
+mem_map_error:
+
+    mov si, mem_map_error_msg
+    call print
+    hlt
 
 ; -----------------------------------------------------------------
 ; Global descriptor table
@@ -165,6 +178,22 @@ start:
     mov ds, bx
     mov [0x000A], ax
     pop ds
+
+    ; get memory map in order to be displayed during the kernel loading process;
+    ; we do it here into stage2 as we can simply use the dedicated BIOS interrupt;
+    ; stores the map entries at 0x1180C (0x1180:0x000C).
+    ; FIXME: the interrupt does not return any value into the buffer for now...
+    mov bx, 0x1180
+    mov es, bx
+    mov di, 0x000C
+
+    mov eax, 0x0000E820     ; function to get the current memory mapping
+    xor ebx, ebx            ; starting offset of memory to map, should be 0x0 for the first call
+    mov ecx, 24             ; TODO: explain why 24 bytes
+    mov edx, 0x534D4150     ; contains "SMAP" keyword, this value is mandatory
+    int 0x15
+
+    jc mem_map_error        ; displays error if memory mapping cannot be handled (cf = 1)
 
     ; it is mandatory to clear every BIOS interrupt before loading GDT
     ; and before switching into protected mode
