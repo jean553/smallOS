@@ -174,7 +174,7 @@ start:
 
     ; store the RAM amount for kernel usage into 0x1180A (0x1180:0x000A).
     push ds
-    mov bx, 0x1180 
+    mov bx, 0x1180
     mov ds, bx
     mov [0x000A], ax
     pop ds
@@ -187,13 +187,27 @@ start:
     mov es, bx
     mov di, 0x000C
 
-    mov eax, 0x0000E820     ; function to get the current memory mapping
     xor ebx, ebx            ; starting offset of memory to map, should be 0x0 for the first call
-    mov ecx, 24             ; TODO: explain why 24 bytes
-    mov edx, 0x534D4150     ; contains "SMAP" keyword, this value is mandatory
-    int 0x15
 
-    jc mem_map_error        ; displays error if memory mapping cannot be handled (cf = 1)
+    .READ_MEMORY_MAP:
+
+        mov eax, 0x0000E820     ; function to get the current memory mapping
+        mov ecx, 24             ; every entry into the buffer is 24 bytes long
+        mov edx, 0x534D4150     ; contains "SMAP" keyword, this value is mandatory
+        int 0x15
+
+        jc mem_map_error        ; displays error if memory mapping cannot be handled (cf = 1)
+
+        cmp eax, 0x534D4150     ; displays error if output EAX is not the expected fixed value (same as input EDX)
+        jne mem_map_error
+
+        cmp ebx, 0              ; check if the last descriptor has been returned
+        je .READ_MEMORY_MAP_END
+
+        add di, 24              ; every entry into the buffer is 24 bytes long, go to the next entry
+        jmp .READ_MEMORY_MAP
+
+    .READ_MEMORY_MAP_END:
 
     ; it is mandatory to clear every BIOS interrupt before loading GDT
     ; and before switching into protected mode
