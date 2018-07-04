@@ -10,7 +10,7 @@ extern crate rlibc;
 ///
 /// `offset` - starting character offset (from the top left corner), resolution 80 x 25 characters
 /// `string` - the message to print
-pub fn print(offset: u16, string: &str) {
+pub fn print(offset: u32, string: &str) {
 
     let mut offset: u32 = 0xB8000 + (offset * 2) as u32;
 
@@ -66,8 +66,6 @@ pub unsafe fn printb(offset: u32, byte: u8) {
 }
 
 /// Prints the given number on screen at the given offset.
-///
-/// TODO: similar to printi, should be refactored
 ///
 /// Args:
 ///

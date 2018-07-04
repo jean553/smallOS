@@ -458,3 +458,115 @@ pub fn initialize_pit() {
         *(0x11806 as *mut u16) = 0;
     }
 }
+
+/// Represents one memory area information item. Stage2 used BIOS interrupt in order to set those values in memory. It considered the base address 64 bits long, the length 64 bits long and the type 32 bits long. As smallOS only uses 16MBytes of RAM, we reduce the base address to 32 bits (it will never exceed this value), same for the length, and simply use a boolean for the type (we only want to know if the area is usuable or not).
+#[derive(Copy, Clone)]
+pub struct MemoryArea {
+    base_address: u32,
+    length: u32,
+    usuable: bool,
+}
+
+impl MemoryArea {
+
+    /// Constructor of a memory area.
+    ///
+    /// Returns:
+    ///
+    /// a new memory area with default values
+    pub fn new() -> MemoryArea {
+        MemoryArea {
+            base_address: 0,
+            length: 0,
+            usuable: false,
+        }
+    }
+
+    /// Getter of the memory area base address.
+    ///
+    /// Returns:
+    ///
+    /// the base address
+    pub fn get_base_address(&self) -> u32 {
+        self.base_address
+    }
+
+    /// Getter of the memory area length.
+    ///
+    /// Returns:
+    ///
+    /// the length
+    pub fn get_length(&self) -> u32 {
+        self.length
+    }
+
+    /// Indicates if the memory area is usuable or not.
+    ///
+    /// Returns:
+    ///
+    /// true if the memory area is usuable
+    pub fn is_usuable(&self) -> bool {
+        self.usuable
+    }
+
+    /// Sets the base address.
+    ///
+    /// Args:
+    ///
+    /// `base_address` - the memory area base address
+    fn set_base_address(&mut self, base_address: u32) {
+        self.base_address = base_address;
+    }
+
+    /// Sets the length.
+    ///
+    /// Args:
+    ///
+    /// `length` - the memory area length
+    fn set_length(&mut self, length: u32) {
+        self.length = length;
+    }
+
+    /// Indicates if the memory area is usuable.
+    ///
+    /// Args:
+    ///
+    /// `usuable` - set to true if the memory area is usuable
+    fn set_is_usuable(&mut self, usuable: bool) {
+        self.usuable = usuable;
+    }
+}
+
+/// Returns entries of the memory map. It returns an array of the ten first detected memory areas. These areas have been loaded by Stage2. As smallOS has 16Mbytes of RAM, there is almost no risk to have more than ten entries.
+///
+/// TODO: a fixed size static array might be replaced by a dynamic array after standard library implementation (like Vector)
+///
+/// # Returns:
+///
+/// array of memory areas, the ten first memory areas
+pub fn get_memory_map() -> [MemoryArea; 10] {
+
+    const MEMORY_AREAS_MAX_AMOUNT: usize = 10;
+    let mut areas = [
+        MemoryArea::new();
+        MEMORY_AREAS_MAX_AMOUNT
+    ];
+
+    const MEMORY_MAP_BASE_ADDRESS: usize = 0x1180C;
+    let mut offset: usize = MEMORY_MAP_BASE_ADDRESS;
+
+    for area in areas.iter_mut() {
+
+        area.set_base_address( unsafe { *((offset) as *mut u32) } );
+        offset += 8;
+
+        area.set_length( unsafe { *((offset) as *mut u32) } );
+        offset += 8;
+
+        let area_type = unsafe { *((offset) as *mut u32) };
+        area.set_is_usuable(area_type == 1);
+        offset += 8;
+    }
+
+    areas
+}
