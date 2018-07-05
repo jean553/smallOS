@@ -37,7 +37,9 @@ fn print_memory_map() {
     print(664, "Area length");
     print(688, "Area type");
 
-    let areas = get_memory_map();
+    const MEMORY_AREA_ITEMS_AMOUNT: usize = 10;
+    let areas: [MemoryArea; MEMORY_AREA_ITEMS_AMOUNT] = get_memory_map();
+
     let mut cursor_position: u32 = 720;
     let mut line_cursor_position: u32 = 720;
 
