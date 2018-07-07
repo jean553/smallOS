@@ -9,11 +9,11 @@ pub struct KernelVec<T> {
 
     /* u32 and not usize as smallOS is a 32 bits OS,
        but the compiling host is not necessarily 32 bits */
-    size: u32,
+    location: u32,
     length: u32,
 }
 
-impl<T> KernelVec<T> {
+impl KernelVec {
 
     /// Constructor.
     ///
@@ -24,10 +24,9 @@ impl<T> KernelVec<T> {
     /// Returns:
     ///
     /// empty vector for the given type
-    pub fn new(location: u32) -> KernelVec<T> {
+    pub fn new(location: u32) -> KernelVec {
         KernelVec {
-            location: (location) as *mut T,
-            size: mem::size_of::<T>() as u32,
+            location: location,
             length: 0,
         }
     }
