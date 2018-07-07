@@ -8,6 +8,7 @@ extern crate hal;
 use video::{
     print,
     printi32,
+    printi32hex,
     clear_screen,
 };
 
@@ -55,14 +56,14 @@ fn print_memory_map() {
         const BASE_ADDRESS_LIMIT: u32 = 17000000;
 
         /* there is no memory area item left if the base address is equal to 0
-           and if some previous iterations has already occured */
+           and if some previous iterations have already occured */
         if index != 0 && base_address == 0 ||
             base_address > BASE_ADDRESS_LIMIT {
             break;
         }
 
         cursor_position = line_cursor_position;
-        printi32(
+        printi32hex(
             cursor_position,
             base_address
         );

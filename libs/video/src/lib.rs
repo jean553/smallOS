@@ -113,3 +113,55 @@ pub fn printi32(offset: u32, mut value: u32) {
         offset += OFFSET_STEP;
     }
 }
+
+/// Prints the given integer at the given offset using hexadecimal format.
+///
+/// Args:
+///
+/// `offset` - the offset where the number must be written
+/// `value` - the value to display
+pub fn printi32hex(mut offset: u32, mut value: u32) {
+
+    /* hexadecimal prefix */
+    print(offset, "0x");
+    offset += 2;
+
+    let mut offset: u32 = 0xB8000 + (offset * 2) as u32;
+
+    if value == 0 {
+        unsafe { printb(offset, '0' as u8) };
+        return;
+    }
+
+    const HEXA_BASE_ADDRESS_MAX_LENGTH: usize = 8;
+    let mut results: [
+        u8;
+        HEXA_BASE_ADDRESS_MAX_LENGTH
+    ] = [0; HEXA_BASE_ADDRESS_MAX_LENGTH];
+
+    let mut index: usize = 0;
+
+    while value != 0 {
+
+        const DIVISOR: u32 = 16;
+        let reminder = (value % DIVISOR) as u8;
+        value = value / DIVISOR;
+
+        const ASCII_OFFSET_FOR_DIGITS: u8 = 48;
+        const ASCII_OFFSET_FOR_LETTERS: u8 = 55;
+        results[index] = if reminder < 10 {
+            reminder + ASCII_OFFSET_FOR_DIGITS
+        } else {
+            reminder + ASCII_OFFSET_FOR_LETTERS
+        };
+
+        index += 1;
+    }
+
+    for result in results.iter().rev().skip(
+        HEXA_BASE_ADDRESS_MAX_LENGTH - index
+    ) {
+        unsafe { printb(offset, *result) };
+        offset += 2;
+    }
+}
