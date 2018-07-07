@@ -74,11 +74,18 @@ pub unsafe fn printb(offset: u32, byte: u8) {
 pub fn printi32(offset: u32, mut value: u32) {
 
     const ASCII_OFFSET: u32 = 48;
+
+    let mut offset: u32 = 0xB8000 + (offset * 2) as u32;
+
+    if value == 0 {
+        unsafe { printb(offset, '0' as u8); };
+        return;
+    }
+
     const DIVISOR_STEPS: u32 = 10;
     const OFFSET_STEP: u32 = 2;
     const DIGITS_AMOUNT: usize = 10;
 
-    let mut offset: u32 = 0xB8000 + (offset * 2) as u32;
     let mut divisor: u32 = 1000000000;
     let mut prefix_zeros: bool = true;
 
