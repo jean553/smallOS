@@ -29,4 +29,19 @@ impl KernelVec {
             length: 0,
         }
     }
+
+    /// Appends data to the kernel vector.
+    ///
+    /// Args:
+    ///
+    /// `item` - the item to append
+    pub fn push<T>(&mut self, item: T) {
+
+        unsafe {
+            *(self.location as *mut T) = item;
+        }
+
+        self.location += mem::size_of::<T>() as u32;
+        self.length += 1;
+    }
 }
