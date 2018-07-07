@@ -550,7 +550,7 @@ impl MemoryArea {
 /// array of memory areas, the ten first memory areas
 pub fn get_memory_map() -> [MemoryArea; 10] {
 
-    let results: KernelVec<MemoryArea> = KernelVec::new(0x1180E);
+    let results: KernelVec = KernelVec::new(0x1180E);
 
     const MEMORY_AREAS_MAX_AMOUNT: usize = 10;
     let mut areas = [
