@@ -49,9 +49,15 @@ fn print_memory_map() {
 
         let base_address = area.get_base_address();
 
+        /* arbitrary address limit, we ignore every area that starts after 16MBytes;
+           in factm it might be an entry that the BIOS (or even Bochs) added
+           but it can be ignored safely */
+        const BASE_ADDRESS_LIMIT: u32 = 17000000;
+
         /* there is no memory area item left if the base address is equal to 0
            and if some previous iterations has already occured */
-        if index != 0 && base_address == 0 {
+        if index != 0 && base_address == 0 ||
+            base_address > BASE_ADDRESS_LIMIT {
             break;
         }
 
