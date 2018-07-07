@@ -1,0 +1,9 @@
+[package]
+name = "std"
+version = "0.1.0"
+authors = ["Jean LELIEVRE <Jean.LELIEVRE@supinfo.com>"]
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
