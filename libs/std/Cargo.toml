@@ -1,5 +1,5 @@
 [package]
-name = "hal"
+name = "std"
 version = "0.1.0"
 authors = ["Jean LELIEVRE <Jean.LELIEVRE@supinfo.com>"]
 
@@ -7,4 +7,3 @@ authors = ["Jean LELIEVRE <Jean.LELIEVRE@supinfo.com>"]
 crate-type = ["rlib"]
 
 [dependencies]
-std = { path = "../../libs/std" }

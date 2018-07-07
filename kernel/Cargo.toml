@@ -6,3 +6,4 @@ authors = ["Jean LELIEVRE <Jean.LELIEVRE@supinfo.com>"]
 [dependencies]
 hal = { path = "../libs/hal" }
 video = { path = "../libs/video" }
+std = { path = "../libs/std" }
