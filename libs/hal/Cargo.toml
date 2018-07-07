@@ -7,3 +7,4 @@ authors = ["Jean LELIEVRE <Jean.LELIEVRE@supinfo.com>"]
 crate-type = ["rlib"]
 
 [dependencies]
+std = { path = "../../libs/std" }
