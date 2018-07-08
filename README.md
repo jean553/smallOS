@@ -44,7 +44,7 @@ A very basic OS for self-learning purposes.
 
 ## Tasks in progress
 
- * initialize the PIT
+ * initialize memory paging
 
 ## Installation
 
