@@ -602,3 +602,50 @@ pub fn get_memory_map() -> [MemoryArea; 10] {
 
     areas
 }
+
+/// Loads the pages directory.
+///
+/// TODO: should load the pages tables.
+pub fn load_pagination() {
+
+    const PAGES_DIRECTORY_ADDRESS: u32 = 0x110000;
+    const PAGES_TABLES_ADDRESS: u32 = 0x111000;
+    const DIRECTORY_ENTRY_SIZE: u32 = 4;
+
+    /* FIXME: smallOS only has 16 MBytes of memory,
+       load pagination with 1024 entries into the directory
+       is surely too much, should be improved... */
+    const PAGES_DIRECTORY_ENTRIES: u32 = 1024;
+
+    for index in 0..PAGES_DIRECTORY_ENTRIES {
+
+        let descriptor_address: u32 = PAGES_DIRECTORY_ADDRESS +
+            DIRECTORY_ENTRY_SIZE * index as u32;
+
+        let page_table_address: u32 = PAGES_TABLES_ADDRESS +
+            PAGES_DIRECTORY_ENTRIES * DIRECTORY_ENTRY_SIZE * index as u32;
+
+        unsafe {
+            *(descriptor_address as *mut PageDirectoryEntry) = PageDirectoryEntry {
+                /* properties configuration:
+                 * bit 0: the page is into the RAM
+                 * bit 1: the page is writable,
+                 * bit 2: the page is used by the kernel,
+                 * bit 3: the cache is disabled on this page,
+                 * bit 4: the cache is disabled on this page,
+                 * bit 5: the page has not been accessed yet,
+                 * bit 6: reserved
+                 * bit 7: the page is 4KBytes long
+                 *
+                 * (check PageDirectoryEntry for details of the properties)
+                 * */
+                properties: 0b00000111,
+
+                /* fit the 32 bits physical address on 20 bits
+                 * (mandatory for the pages directory entries) */
+                base_address_high: (page_table_address >> 16) as u8,
+                base_address_low: (page_table_address & 0xffff) as u16,
+            };
+        }
+    }
+}
