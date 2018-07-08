@@ -51,6 +51,32 @@ struct IDTDescriptor {
     base_high: u16,
 }
 
+/* one page directory entry for memory paging;
+ * bit 0: present flag, 1 if the page is into memory, 0 if the page is on a hard drive (swap),
+ * bit 1: writable, 1 if the page is writable, 0 if the page is read only,
+ * bit 2: 1 if the page is used by the kernel, 0 if the page is used from the userland
+ * bit 3: caching, 0 for write-back caching, 1 for write-through-cache,
+ * bit 4: 0 to disable cache on this page, 1 to enable cache on this page,
+ * bit 5: set by the processor (0 if page has not been accessed, 1 if page has been accessed),
+ * bit 6: reserved
+ * bit 7: page size, 0 for 4KBytes pages, 1 for 4MBytes pages
+ * bit 8: ignored
+ * bits 9-11: no meaning, can be used for any custom information
+ * bits 12-31: page table physical base address
+ * */
+#[repr(packed)]
+struct PageDirectoryEntry {
+
+    /* we use u8 instead of multiple booleans as one boolean
+       is one byte long which is too much */
+    properties: u8,
+
+    /* use 24 bits to store the address,
+       even if the address is never more than 20 bits long */
+    base_address_high: u8,
+    base_address_low: u16,
+}
+
 /// General function for any kind of exception/error.
 ///
 /// IMPORTANT: must be private in order to return in-memory address when call "handle_error as *const ()"
