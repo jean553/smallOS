@@ -885,9 +885,26 @@ and in order to pass data to the kernel.
          |         Used         |
          |                      |
          +----------------------+0xFFFFF - 0x100000
+         |                      |
          |        Kernel        |
          |                      |
-         +----------------------+ end of the kernel
+         +----------------------+ ... <- end of the kernel
+         |                      |
+         |                      |
+         |         Free         |
+         |                      |
+         |                      |
+         +----------------------+0x10FFFF - 0x110000
+         |                      |
+         |   Pages directory    |
+         |                      |
+         +----------------------+0x110FFF - 0x111000
+         |                      |
+         |                      |
+         |     Pages tables     |
+         |                      |
+         |                      |
+         +----------------------+0x510FFF - 0x511000
          |                      |
          |                      |
          |         Free         |
