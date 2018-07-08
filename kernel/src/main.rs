@@ -23,6 +23,7 @@ use hal::{
     get_ticks_amount,
     get_ram_amount,
     get_memory_map,
+    load_pagination,
     MemoryArea,
 };
 
@@ -122,6 +123,8 @@ pub fn _start() -> ! {
     unsafe { enable_interrupts(); }
 
     print_memory_map();
+
+    load_pagination();
 
     print(1600, "Current time tick:");
 
