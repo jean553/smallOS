@@ -4,7 +4,6 @@
 
 extern crate video;
 extern crate hal;
-extern crate std;
 
 use video::{
     print,
