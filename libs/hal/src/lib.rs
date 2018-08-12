@@ -69,8 +69,32 @@ struct PageDirectoryEntry {
 
     /* use 24 bits to store the address,
        even if the address is never more than 20 bits long */
-    base_address_high: u8,
     base_address_low: u16,
+    base_address_high: u8,
+}
+
+/* one page table entry for memoring paging
+ * bit 0: present flag, 1 if the page is into memory, 0 if the page is on a hard drive (swap),
+ * bit 1: writable, 1 if the page is writable, 0 if the page is read only,
+ * bit 2: 1 if the page is used by the kernel, 0 if the page is used from the userland
+ * bits 3-4: reserved
+ * bit 5: set by the processor (0 if page has not been accessed, 1 if page has been accessed),
+ * bit 6: set by the processor, written, 1 if the page has been written, if not 0
+ * bits 7-8: reserved
+ * bits 9-11: no meaning, can be used for any custom information
+ * bits 12-31: page physical base address
+ * */
+#[repr(packed)]
+struct PageTableEntry {
+
+    /* we use u8 instead of multiple booleans as one boolean
+       is one byte long which is too much */
+    properties: u8,
+
+    /* use 24 bits to store the address,
+       even if the address is never more than 20 bits long */
+    base_address_low: u16,
+    base_address_high: u8,
 }
 
 /// General function for any kind of exception/error.
@@ -597,47 +621,101 @@ pub fn get_memory_map() -> [MemoryArea; 10] {
 
 /// Loads the pages directory.
 ///
-/// TODO: should load the pages tables.
+/// TODO: should load the pages tables, only load the kernel pages for now,
+/// in order to ensure identity mapping and prevent fault when switching
 pub fn load_pagination() {
 
     const PAGES_DIRECTORY_ADDRESS: u32 = 0x110000;
     const PAGES_TABLES_ADDRESS: u32 = 0x111000;
-    const DIRECTORY_ENTRY_SIZE: u32 = 4;
 
-    /* FIXME: smallOS only has 16 MBytes of memory,
-       load pagination with 1024 entries into the directory
-       is surely too much, should be improved... */
-    const PAGES_DIRECTORY_ENTRIES: u32 = 1024;
+    /* directory entries properties configuration:
+     * bit 0: the page is into the RAM
+     * bit 1: the page is writable,
+     * bit 2: the page is used by the kernel,
+     * bit 3: the cache is disabled on this page,
+     * bit 4: the cache is disabled on this page,
+     * bit 5: the page has not been accessed yet,
+     * bit 6: reserved
+     * bit 7: the page is 4KBytes long
+     *
+     * (check PageDirectoryEntry for details of the properties) */
+    const PAGE_DIRECTORY_ENTRY_PROPERTIES: u8 = 0b00000111;
 
-    for index in 0..PAGES_DIRECTORY_ENTRIES {
+    unsafe {
+        *(PAGES_DIRECTORY_ADDRESS as *mut PageDirectoryEntry) = PageDirectoryEntry {
 
-        let descriptor_address: u32 = PAGES_DIRECTORY_ADDRESS +
-            DIRECTORY_ENTRY_SIZE * index as u32;
+            properties: PAGE_DIRECTORY_ENTRY_PROPERTIES,
 
-        let page_table_address: u32 = PAGES_TABLES_ADDRESS +
-            PAGES_DIRECTORY_ENTRIES * DIRECTORY_ENTRY_SIZE * index as u32;
+            /* fit the 32 bits physical address on 20 bits
+             * (mandatory for the pages directory entries),
+             * physical address of the first page table: 0x111000,
+             * so 0b100010001000000000000 (we remove the 12 low bits),
+             * base address starts at bit 12 into the 32 bits of the entry,
+             * 8 have been used already for the properties, so we shift the 4 remaining bits */
+            base_address_low: (0x111 << 4) as u16,
+            base_address_high: 0,
+        };
+    }
+
+    const IDENTITY_MAPPING_AREA_START: u32 = 0x0;
+    const IDENTITY_MAPPING_AREA_END: u32 = 0x110000;
+
+    let mut physical_address = IDENTITY_MAPPING_AREA_START as u32;
+    let mut page_table_entry_address = PAGES_TABLES_ADDRESS;
+    let mut base_address_low = 0;
+
+    /* directory entries properties configuration:
+     * bit 0: the page is into the RAM
+     * bit 1: the page is writable,
+     * bit 2: the page is used by the kernel,
+     * bits 3-4: reserved,
+     * bit 5: set by the processor if the page has been accessed or not,
+     * bit 6: set by the processor if the page has been written or not,
+     * bits 7-8: reserved
+     *
+     * (check PageTableEntry for details of the properties) */
+    const PAGE_TABLE_ENTRY_PROPERTIES: u8 = 0b00000111;
+
+    while physical_address != IDENTITY_MAPPING_AREA_END {
 
         unsafe {
-            *(descriptor_address as *mut PageDirectoryEntry) = PageDirectoryEntry {
-                /* properties configuration:
-                 * bit 0: the page is into the RAM
-                 * bit 1: the page is writable,
-                 * bit 2: the page is used by the kernel,
-                 * bit 3: the cache is disabled on this page,
-                 * bit 4: the cache is disabled on this page,
-                 * bit 5: the page has not been accessed yet,
-                 * bit 6: reserved
-                 * bit 7: the page is 4KBytes long
-                 *
-                 * (check PageDirectoryEntry for details of the properties)
-                 * */
-                properties: 0b00000111,
+            *(page_table_entry_address as *mut PageTableEntry) = PageTableEntry {
+
+                properties: PAGE_TABLE_ENTRY_PROPERTIES,
 
                 /* fit the 32 bits physical address on 20 bits
-                 * (mandatory for the pages directory entries) */
-                base_address_high: (page_table_address >> 16) as u8,
-                base_address_low: (page_table_address & 0xffff) as u16,
+                 * (mandatory for the pages directory entries),
+                 * physical address of the first page table: 0x111000,
+                 * so 0b100010001000000000000 (we remove the 12 low bits),
+                 * base address starts at bit 12 into the 32 bits of the entry,
+                 * 8 have been used already for the properties, so we shift the 4 remaining bits */
+                base_address_low: (base_address_low << 4) as u16,
+                base_address_high: 0 as u8,
             };
-        }
+        };
+
+        const PAGE_FRAME_BYTES_SIZE: u32 = 4096;
+        physical_address += PAGE_FRAME_BYTES_SIZE;
+
+        page_table_entry_address += 4;
+        base_address_low += 1;
     }
+
+    /* set the pages directory started address (CR3)
+       and enable pagination (bit 31 of CR0) */
+
+    unsafe {
+        asm!("
+            mov eax, $0
+            mov cr3, eax
+            " :: "r" (PAGES_DIRECTORY_ADDRESS) :: "intel"
+        );
+
+        asm!("
+            mov eax, cr0
+            or eax, 0x80000000
+            mov cr0, eax
+            " :::: "intel"
+        );
+    };
 }
