@@ -685,8 +685,6 @@ pub fn load_pagination() {
 
                 /* fit the 32 bits physical address on 20 bits
                  * (mandatory for the pages directory entries),
-                 * physical address of the first page table: 0x111000,
-                 * so 0b100010001000000000000 (we remove the 12 low bits),
                  * base address starts at bit 12 into the 32 bits of the entry,
                  * 8 have been used already for the properties, so we shift the 4 remaining bits */
                 base_address_low: (base_address_low << 4) as u16,
