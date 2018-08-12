@@ -863,13 +863,7 @@ and in order to pass data to the kernel.
          |     Memory amount    |
          +----------------------+0x1180D - 0x1180E
          |                      |
-         |     Kernel vector    |
          |                      |
-         +----------------------+ ... <- top of a kernel vector data (basic Vec<T> implementation
-         |                      |        with the ability for the client to set the heap data address),
-         |                      |        used at the initialization of the kernel only (kernel/main.rs),
-         |                      |        there is normaly no risk so far for this data to overflow
-         |                      |        with the stack data right after...
          |         Free         |
          |                      |
          |                      |
