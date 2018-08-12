@@ -3,10 +3,6 @@
 #![feature(asm)]
 #![no_std]
 
-extern crate std;
-
-use std::KernelVec;
-
 use core::mem;
 
 const IDT_START_ADDRESS: u32 = 0x11000;
@@ -569,14 +565,10 @@ impl MemoryArea {
 
 /// Returns entries of the memory map. It returns an array of the ten first detected memory areas. These areas have been loaded by Stage2. As smallOS has 16Mbytes of RAM, there is almost no risk to have more than ten entries.
 ///
-/// TODO: a fixed size static array might be replaced by a dynamic array after standard library implementation (like Vector)
-///
 /// # Returns:
 ///
 /// array of memory areas, the ten first memory areas
 pub fn get_memory_map() -> [MemoryArea; 10] {
-
-    let results: KernelVec = KernelVec::new(0x1180E);
 
     const MEMORY_AREAS_MAX_AMOUNT: usize = 10;
     let mut areas = [
