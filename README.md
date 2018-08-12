@@ -39,6 +39,7 @@ A very basic OS for self-learning purposes.
 - [Kernel global variables](#kernel-global-variables)
 - [Debug](#debug)
     * [Check GDT and IDT](#check-gdt-and-idt)
+    * [Check paging](#check-paging)
     * [UI debugger](#ui-debugger)
     * [Logs](#logs)
 
@@ -863,13 +864,7 @@ and in order to pass data to the kernel.
          |     Memory amount    |
          +----------------------+0x1180D - 0x1180E
          |                      |
-         |     Kernel vector    |
          |                      |
-         +----------------------+ ... <- top of a kernel vector data (basic Vec<T> implementation
-         |                      |        with the ability for the client to set the heap data address),
-         |                      |        used at the initialization of the kernel only (kernel/main.rs),
-         |                      |        there is normaly no risk so far for this data to overflow
-         |                      |        with the stack data right after...
          |         Free         |
          |                      |
          |                      |
@@ -949,6 +944,23 @@ IDT[0xff]=32-Bit Interrupt Gate target=0x0008:0x00101080, DPL=0
 
 Note that if they are loaded correctly, the GDT should contain three entries
 and the IDT should contain one entry.
+
+### Check paging
+
+Virtual addresses and physical addresses mapping can be checked out using the following command:
+
+```
+info tab
+```
+
+The expected result:
+
+```
+0x00000000-0x0010ffff -> 0x000000000000-0x00000010ffff 
+```
+
+All content before 0x00110000 is identity mapped
+in order to let the kernel work as expected during memory mode switch.
 
 ### UI Debugger
 
