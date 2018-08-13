@@ -128,9 +128,22 @@ pub fn _start() -> ! {
     print(1600, "Current time tick:");
 
     loop {
-        unsafe {
-            printi32(1680, get_ticks_amount());
+
+        let ticks = unsafe { get_ticks_amount() };
+
+        const TICKS_AMOUNT_TO_WAIT: u32 = 10000;
+        if ticks > TICKS_AMOUNT_TO_WAIT {
+            break;
         }
+
+        printi32(1680, ticks);
+    }
+
+    clear_screen();
+
+    /* TODO: integrate some keyboard interaction */
+
+    loop {
     }
 }
 
