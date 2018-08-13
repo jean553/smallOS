@@ -37,6 +37,7 @@ A very basic OS for self-learning purposes.
     * [Programmable Interrupt Timer initialization](#programmable-interrupt-timer-initialization)
 - [Get the memory amount](#get-the-memory-amount)
 - [Kernel global variables](#kernel-global-variables)
+- [Paging](#paging)
 - [Debug](#debug)
     * [Check GDT and IDT](#check-gdt-and-idt)
     * [Check paging](#check-paging)
@@ -820,92 +821,153 @@ and in order to pass data to the kernel.
  * 0x1180A: detected amount of memory (in KBytes), detected by Stage2 and used by the kernel
 
 ```
-         +----------------------+0x0000
-         |                      |
-         |         IVT          |
-         |                      |
-         +----------------------+0x03FF - 0x0400
-         |         BIOS         |
-         +----------------------+0x04FF - 0x0500
-         |        stack         |
-         +----------------------+0x09FF - 0x0A00
-         |                      |
-         |        Free          |
-         |                      |
-         +----------------------+0x7BFF - 0x7C00
-         |       boot.bin       |
-         +----------------------+0x7DFF - 0x7E00
-         |                      |
-         |       stage2.bin     |
-         |                      |
-         +----------------------+0x85FF - 0x8600
-         |                      |
-         |                      |
-         |         Free         |
-         |                      |
-         |                      |
-         +----------------------+0x9FFF - 0xA000
-         |                      |
-         |    Root directory    |
-         |                      |
-         +----------------------+0xE7FF - 0xE800
-         |                      |
-         |         FAT          |
-         |                      |
-         +----------------------+0x10FFF - 0x11000
-         |                      |
-         |   IDT descriptors    |
-         |                      |
-         +----------------------+0x117FF - 0x11800
-         |     IDT register     |
-         +----------------------+0x11805 - 0x11806
-         |     Ticks amount     |
-         +----------------------+0x11809 - 0x1180A
-         |     Memory amount    |
-         +----------------------+0x1180D - 0x1180E
-         |                      |
-         |                      |
-         |         Free         |
-         |                      |
-         |                      |
-         +----------------------+ ... <- top of the stack
-         |                      |
-         |        Stack         |
-         |                      |
-         +----------------------+0x9FFEF - 0x9FFF0
-         |                      |
-         |         Free         |
-         |                      |
-         +----------------------+0x9FFFF - OxA0000
-         |         Used         |
-         |                      |
-         +----------------------+0xFFFFF - 0x100000
-         |                      |
-         |        Kernel        |
-         |                      |
-         +----------------------+ ... <- end of the kernel
-         |                      |
-         |                      |
-         |         Free         |
-         |                      |
-         |                      |
-         +----------------------+0x10FFFF - 0x110000
-         |                      |
-         |   Pages directory    |
-         |                      |
-         +----------------------+0x110FFF - 0x111000
-         |                      |
-         |                      |
-         |     Pages tables     |
-         |                      |
-         |                      |
-         +----------------------+0x510FFF - 0x511000
-         |                      |
-         |                      |
-         |         Free         |
-         |                      |
-         |                      |
-         +----------------------+0xFFFFFFFF
+                 +----------------------+0x0000                +-------+
+                 |                      |                              |
+                 |         IVT          |                              |
+                 |                      |                              |
+                 +----------------------+0x03FF + 0x0400               |
+                 |         BIOS         |                              |
+                 +----------------------+0x04FF + 0x0500               |
+                 |        stack         |                              |
+                 +----------------------+0x09FF + 0x0A00               |
+                 |                      |                              |
+                 |        Free          |                              |
+                 |                      |                              |
+                 +----------------------+0x7BFF + 0x7C00               |
+                 |       boot.bin       |                              |
+                 +----------------------+0x7DFF + 0x7E00               |
+                 |                      |                              |
+                 |       stage2.bin     |                              |
+                 |                      |                              |
+                 +----------------------+0x85FF + 0x8600               |
+                 |                      |                              |
+                 |                      |                              |
+                 |         Free         |                              |
+                 |                      |                              |
+                 |                      |                              |
+                 +----------------------+0x9FFF + 0xA000               |
+                 |                      |                              |
+                 |    Root directory    |                              |
+                 |                      |                              |
+                 +----------------------+0xE7FF + 0xE800               |
+                 |                      |                              |
+                 |         FAT          |                              |
+                 |                      |                              |
+                 +----------------------+0x10FFF + 0x11000             |
+                 |                      |                              | Identity mapping:
+                 |   IDT descriptors    |                              | Pages directory entry 0,
+                 |                      |                              | Pages tables entries from 0 to 271 included
+                 +----------------------+0x117FF + 0x11800             |
+                 |     IDT register     |                              |
+                 +----------------------+0x11805 + 0x11806             |
+                 |     Ticks amount     |                              |
+                 +----------------------+0x11809 + 0x1180A             |
+                 |     Memory amount    |                              |
+                 +----------------------+0x1180D + 0x1180E             |
+                 |                      |                              |
+                 |                      |                              |
+                 |         Free         |                              |
+                 |                      |                              |
+                 |                      |                              |
+                 +----------------------+ ... <+ top of the stack      |
+                 |                      |                              |
+                 |        Stack         |                              |  <--------+
+                 |                      |                              |           |
+                 +----------------------+0x9FFEF + 0x9FFF0             |           |
+                 |                      |                              |           |
+                 |         Free         |                              |           |
+                 |                      |                              |           |
+                 +----------------------+0x9FFFF + OxA0000             |           |
+                 |         Used         |                              |           |
+                 |                      |                              |           |
+                 +----------------------+0xFFFFF + 0x100000            |           |
+                 |                      |                              |           |
+                 |        Kernel        |                              |           |
+                 |                      |                              |           |
+                 +----------------------+ ... <+ end of the kernel     |           |
+                 |                      |                              |           |
+                 |                      |                              |           |
+                 |         Free         |                              |           |
+                 |                      |                              |           |
+                 |                      |                              |           |
+                 +----------------------+0x10FFFF + 0x110000    +------+           |
+                 |       Entry 0        |                                          |
+                 +----------------------+                                          |
+                 |                      |                                          |
+Pages directory  |                      |                                          |
+                 |                      |                                          |
+                 |                      |                                          |
+                 +----------------------+0x110FFF + 0x111000   +-------+           |
+                 |       Entry 0        |                              |           |
+                 +----------------------+                              |           |
+Pages tables     |                      |                              |           |
+                 |                      |                             +------------+
+                 |                      |                              |
+                 +----------------------+                              |
+                 |      Entry 271       |                              |
+                 +----------------------+                      +-------+
+                 |                      |
+                 |                      |
+                 |                      |
+                 |                      |
+                 +- --------------------+0x510FFF + 0x511000
+                 |                      |
+                 |                      |
+                 |         Free         |
+                 |                      |
+                 |                      |
+                 +----------------------+0xFFFFFFFF
+```
+
+The `pages directory` contains 1024 entries of 4 bytes, so it is 4096 bytes long.
+The `pages tables` group contains 1024 entries of 4 bytes for every pages directory entry, so it is 4194304 bytes long.
+
+## Paging
+
+The kernel initializes memory paging.
+
+Memory is divided into page frames. Every page frame is 4096 bytes long.
+Every page frame is referenced into a page table and every page table is referenced into a page directory.
+
+`CR3` register stores the physical address of the directory. The last bit of `CR0` is set to 1 to enable pagination.
+As soon as paging is enabled, every address is considered as a virtual address,
+so it use paging in order to be translated into a physical address.
+
+Translation works as follow:
+ * get the physical address of the directory from `CR3`,
+ * the bits 31 to 22 of the virtual address (from 0 to 1023) is the index of the page table entry to find from the directory,
+ * the found entry contains the physical address of the page table to use,
+ * the bits 21 to 12 of the virtual address (from 0 to 1023) is the index of the page frame to find from the page table,
+ * the found entry contains the physical address of the page frame to use,
+ * the bits 11 to 0 of the virtual address (from 0 to 4095) is the index of the byte into the page frame
+
+```
+                                   Directory                             Table                  Physical memory
+  Virtual address            +------------------+ 0x0              +------------------+ 0x0     +--------------+
+        +             +----> |------------------|         +------> |------------------|         |              |
+        |             |      ||                ||         |        ||                ||         +--------------+ +--+
+        |             |      ||  4 bytes entry |----------+        ||  4 bytes entry |-----------> Physical addr    |
+        |             |      ||                ||                  ||                ||         +--------------|    |
+        |             |      |------------------|                  |------------------|         |              |    |
+        |             |      |------------------| 0x4              |------------------| 0x4     |              |    |
+        |             |      ||                ||                  ||                ||         |              |    |
+        v             |      ||  4 bytes entry ||                  ||  4 bytes entry ||         |              |    |
+                      |      ||                ||                  ||                ||         |  Page frame  |    | 4096 bytes
+   CR3 to find   +----+      +------------------+                  +------------------+         |              |    |
+ physical address            |                  |                  |                  |         |              |    |
+                             |                  |                  |                  |         |              |    |
+                             |                  |                  |                  |         |              |    |
+                             |                  |                  |                  |         |              |    |
+                             |                  |                  |                  |         |              |    |
+                             |                  |                  |                  |         +--------------+ +--+
+                             |                  |                  |                  |         |              |
+                             |                  |                  |                  |         |              |
+                             +------------------+ 0x1000           +------------------+ 0x1000  |              |
+                                                                                                |              |
+                                                                                                |              |
+                                                                                                |              |
+                                                                                                +--------------+
+
 ```
 
 ## Debug
