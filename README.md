@@ -37,6 +37,7 @@ A very basic OS for self-learning purposes.
     * [Programmable Interrupt Timer initialization](#programmable-interrupt-timer-initialization)
 - [Get the memory amount](#get-the-memory-amount)
 - [Kernel global variables](#kernel-global-variables)
+- [Paging](#paging)
 - [Debug](#debug)
     * [Check GDT and IDT](#check-gdt-and-idt)
     * [Check paging](#check-paging)
@@ -906,6 +907,57 @@ and in order to pass data to the kernel.
          |                      |
          |                      |
          +----------------------+0xFFFFFFFF
+```
+
+The `pages directory` contains 1024 entries of 4 bytes, so it is 4096 bytes long.
+The `pages tables` group contains 1024 entries of 4 bytes for every pages directory entry, so it is 4194304 bytes long.
+
+## Paging
+
+The kernel initializes memory paging.
+
+Memory is divided into page frames. Every page frame is 4096 bytes long.
+Every page frame is referenced into a page table and every page table is referenced into a page directory.
+
+`CR3` register stores the physical address of the directory. The last bit of `CR0` is set to 1 to enable pagination.
+As soon as paging is enabled, every address is considered as a virtual address,
+so it use paging in order to be translated into a physical address.
+
+Translation works as follow:
+ * get the physical address of the directory from `CR3`,
+ * the bits 31 to 22 of the virtual address (from 0 to 1023) is the index of the page table entry to find from the directory,
+ * the found entry contains the physical address of the page table to use,
+ * the bits 21 to 12 of the virtual address (from 0 to 1023) is the index of the page frame to find from the page table,
+ * the found entry contains the physical address of the page frame to use,
+ * the bits 11 to 0 of the virtual address (from 0 to 4095) is the index of the byte into the page frame
+
+```
+                                   Directory                             Table                  Physical memory
+  Virtual address            +------------------+ 0x0              +------------------+ 0x0     +--------------+
+        +             +----> |------------------|         +------> |------------------|         |              |
+        |             |      ||                ||         |        ||                ||         +--------------+ +--+
+        |             |      ||  4 bytes entry |----------+        ||  4 bytes entry |-----------> Physical addr    |
+        |             |      ||                ||                  ||                ||         +--------------|    |
+        |             |      |------------------|                  |------------------|         |              |    |
+        |             |      |------------------| 0x4              |------------------| 0x4     |              |    |
+        |             |      ||                ||                  ||                ||         |              |    |
+        v             |      ||  4 bytes entry ||                  ||  4 bytes entry ||         |              |    |
+                      |      ||                ||                  ||                ||         |  Page frame  |    | 4096 bytes
+   CR3 to find   +----+      +------------------+                  +------------------+         |              |    |
+ physical address            |                  |                  |                  |         |              |    |
+                             |                  |                  |                  |         |              |    |
+                             |                  |                  |                  |         |              |    |
+                             |                  |                  |                  |         |              |    |
+                             |                  |                  |                  |         |              |    |
+                             |                  |                  |                  |         +--------------+ +--+
+                             |                  |                  |                  |         |              |
+                             |                  |                  |                  |         |              |
+                             +------------------+ 0x1000           +------------------+ 0x1000  |              |
+                                                                                                |              |
+                                                                                                |              |
+                                                                                                |              |
+                                                                                                +--------------+
+
 ```
 
 ## Debug
