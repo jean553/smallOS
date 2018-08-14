@@ -19,6 +19,7 @@ use hal::{
     is_intel_cpu,
     initialize_pic,
     initialize_pit,
+    initialize_keyboard,
     get_ticks_amount,
     get_ram_amount,
     get_memory_map,
@@ -131,7 +132,7 @@ pub fn _start() -> ! {
 
         let ticks = unsafe { get_ticks_amount() };
 
-        const TICKS_AMOUNT_TO_WAIT: u32 = 10000;
+        const TICKS_AMOUNT_TO_WAIT: u32 = 5000;
         if ticks > TICKS_AMOUNT_TO_WAIT {
             break;
         }
@@ -141,10 +142,9 @@ pub fn _start() -> ! {
 
     clear_screen();
 
-    /* TODO: integrate some keyboard interaction */
+    initialize_keyboard();
 
-    loop {
-    }
+    loop {}
 }
 
 /// Defines how to unwind the stack allocated objects on panic. This function is required when no standard library is used, but as the kernel is bare-metal for now, we keep things simple and do not take any specific action to unwind the stack on panic.

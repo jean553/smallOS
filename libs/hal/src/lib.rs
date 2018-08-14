@@ -718,10 +718,73 @@ pub fn load_pagination() {
     };
 }
 
-/// Handler of any keyboard interrupt.
-///
-/// TODO: empty for now, declared only in order to create the IDT handler.
+/// Interrupt routine for any keyboard action.
 fn handle_keyboard_interrupt() {
+
+    unsafe { asm!("push ax" :::: "intel"); };
+
+    let mut status_register: u8 = 0;
+
+    /* get the keyboard controller status code register,
+       in order to know if any action happened on the keyboard;
+       read from the keyboard controller is done through the port 0x64,
+       it returns on byte with the following properties:
+       bit 0 - status of the output buffer, the buffer to read from the keyboard
+             - 0: the buffer is empty (there is nothing to read from the keyboard)
+             - 1: the buffer is full (there is information to read from the keyboard)
+       bit 1 - status of the input buffer, the buffer to write data to the keyboard
+             - 0: the buffer is empty (it is possible to write data into it),
+             - 1: the buffer is full (it is not possible to write data into it,
+                  we must wait for the keyboard to handle it)
+       bit 2 - indicates if the keyboard has been successfully initialized
+               after the Power And Self Test (0 or 1, should be 1)
+       bit 3 - indicates if the last data inserted into the input buffer was data or a command
+             - 0: data written through port 0x60
+             - 1: command written through port 0x64
+       bit 4 - indicates if the keyboard is locked (0 for lock, 1 for unlocked)
+       bit 5 - on AT keyboard, indicates a timeout from the keyboard controller
+               to the keyboard (smallOS uses an AT keyboard)
+             - 0 if no timeout,
+             - 1 if timeout
+       bit 6 - indicates timeout
+       bit 7 - indicates timeout
+    */
+
+    const KEYBOARD_CONTROLLER_PORT: u8 = 0x64;
+    unsafe {
+        asm!("
+            in al, 0x64
+            " : "={al}"(status_register) ::: "intel"
+        );
+    };
+
+    /* simple mask to check that the bit 0 of the status register is equal to 1,
+       which means that there is information to read from the keyboard controller */
+    const OUTPUT_BUFFER_FULL: u8 = 0b00000001;
+
+    /* directly terminates the interrupt routine if there is nothing
+       to read from the keyboard controller */
+
+    if (status_register & OUTPUT_BUFFER_FULL) != OUTPUT_BUFFER_FULL {
+
+        unsafe {
+            asm!("
+                pop ax
+                iretd
+                " :::: "intel"
+            );
+        };
+    }
+
+    /* TODO: get the keyboard action */
+
+    unsafe {
+        asm!("
+            pop ax
+            iretd
+            " :::: "intel"
+        );
+    };
 }
 
 /// Initializes the keyboard, add one IDT entry in order to handle keyboard interrupts.
