@@ -717,3 +717,15 @@ pub fn load_pagination() {
         );
     };
 }
+
+/// Handler of any keyboard interrupt.
+///
+/// TODO: empty for now, declared only in order to create the IDT handler.
+fn handle_keyboard_interrupt() {
+}
+
+/// Initializes the keyboard, add one IDT entry in order to handle keyboard interrupts.
+pub fn initialize_keyboard() {
+
+    create_idt_descriptor(33, (handle_keyboard_interrupt as *const ()) as u32);
+}
