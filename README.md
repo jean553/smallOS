@@ -570,6 +570,9 @@ Index 0 -> handle_error
 Index 1 -> handle_error
 Index 2 -> handle_error
 ...
+Index 32 -> increment timer ticks amount
+Index 33 -> handle any keyboard action
+...
 Index 255 -> handle_error
 ```
 
