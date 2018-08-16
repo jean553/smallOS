@@ -46,7 +46,8 @@ A very basic OS for self-learning purposes.
 
 ## Tasks in progress
 
- * initialize memory paging
+ * handle keyboard inputs
+ * fix global variable access (.bss section)
 
 ## Installation
 
