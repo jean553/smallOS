@@ -206,6 +206,10 @@ pub fn load_idt() {
     const IDT_REGISTER_ADDRESS: u32 = 0x11800;
     const IDT_DESCRIPTORS_AMOUNT: usize = 256;
 
+    for index in 0..IDT_DESCRIPTORS_AMOUNT {
+        create_idt_descriptor(index, (halt as *const ()) as u32);
+    }
+
     /* TODO: #121 for now, all the IRQ would trigger the same IR, that simply halts the system;
        the IR to call should be specific to every IRQ */
 
