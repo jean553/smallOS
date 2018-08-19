@@ -106,8 +106,8 @@ struct PageTableEntry {
 
 /// General function for any kind of exception/error.
 ///
-/// IMPORTANT: must be private in order to return in-memory address when call "handle_error as *const ()"
-unsafe fn handle_error() {
+/// IMPORTANT: must be private in order to return in-memory address when call "halt as *const ()"
+unsafe fn halt() {
     asm!("hlt");
 }
 
@@ -126,7 +126,7 @@ fn handle_division_by_zero() {
 
     clear_screen();
     print(0, "Error: a division by zero occured!");
-    unsafe { handle_error(); };
+    unsafe { halt(); };
 }
 
 /// Loads one IDT descriptor at the given index into the IDT. An IRQ at this index would call the IR at the given address.
@@ -168,9 +168,9 @@ pub fn load_idt() {
        the IR to call should be specific to every IRQ */
     for index in 1..IDT_DESCRIPTORS_AMOUNT {
 
-        /* "handle_error" must be private in order to get
+        /* "halt" must be private in order to get
            an in-memory address at this line (and not an in-kernel file address) */
-        create_idt_descriptor(index, (handle_error as *const ()) as u32);
+        create_idt_descriptor(index, (halt as *const ()) as u32);
     }
 
     unsafe {
