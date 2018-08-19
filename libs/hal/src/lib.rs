@@ -3,6 +3,13 @@
 #![feature(asm)]
 #![no_std]
 
+extern crate video;
+
+use video::{
+    print,
+    clear_screen,
+};
+
 use core::mem;
 
 const IDT_START_ADDRESS: u32 = 0x11000;
@@ -114,6 +121,14 @@ pub unsafe fn enable_interrupts() {
     asm!("sti" :::: "intel");
 }
 
+/// Handler for the interrupt of a division by zero
+fn handle_division_by_zero() {
+
+    clear_screen();
+    print(0, "Error: a division by zero occured!");
+    unsafe { handle_error(); };
+}
+
 /// Loads one IDT descriptor at the given index into the IDT. An IRQ at this index would call the IR at the given address.
 ///
 /// Args:
@@ -147,9 +162,11 @@ pub fn load_idt() {
     const IDT_REGISTER_ADDRESS: u32 = 0x11800;
     const IDT_DESCRIPTORS_AMOUNT: usize = 256;
 
+    create_idt_descriptor(0, (handle_division_by_zero as *const()) as u32);
+
     /* TODO: #121 for now, all the IRQ would trigger the same IR, that simply halts the system;
        the IR to call should be specific to every IRQ */
-    for index in 0..IDT_DESCRIPTORS_AMOUNT {
+    for index in 1..IDT_DESCRIPTORS_AMOUNT {
 
         /* "handle_error" must be private in order to get
            an in-memory address at this line (and not an in-kernel file address) */
