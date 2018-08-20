@@ -106,8 +106,8 @@ struct PageTableEntry {
 
 /// General function for any kind of exception/error.
 ///
-/// IMPORTANT: must be private in order to return in-memory address when call "handle_error as *const ()"
-unsafe fn handle_error() {
+/// IMPORTANT: must be private in order to return in-memory address when call "halt as *const ()"
+unsafe fn halt() {
     asm!("hlt");
 }
 
@@ -122,11 +122,56 @@ pub unsafe fn enable_interrupts() {
 }
 
 /// Handler for the interrupt of a division by zero
+/// (triggered when a division by 0 occured)
 fn handle_division_by_zero() {
 
     clear_screen();
-    print(0, "Error: a division by zero occured!");
-    unsafe { handle_error(); };
+    print(0, "Error: a division by zero occured");
+    unsafe { halt(); };
+}
+
+/// Handler for the debug breakpoint interrupt
+/// (triggered when the special instruction 0xCC is met, so int 0x3)
+fn handle_debug_breakpoint() {
+
+    clear_screen();
+    print(0, "Error: debug breakpoint");
+    unsafe { halt(); };
+}
+
+/// Handler for the overflow interrupt
+/// (triggered when an overflow occured, result of a division bigger than the destination register for instance)
+fn handle_overflow() {
+
+    clear_screen();
+    print(0, "Error: overflow");
+    unsafe { halt(); };
+}
+
+/// Handler of the array index out of range
+/// (triggered when an index tries to access an array location out of the array range)
+fn handle_array_index_out_range() {
+
+    clear_screen();
+    print(0, "Error: array index out of range");
+    unsafe { halt(); };
+}
+
+/// Handler of the invalid code instruction
+/// (triggered when the CPU has to execute an instruction that it cannot recognize)
+fn handle_invalid_code_instruction() {
+
+    clear_screen();
+    print(0, "Error: invalid code instruction");
+    unsafe { halt(); };
+}
+
+/// Handler for any unhandled interrupt
+fn handle_unhandled_interrupt() {
+
+    clear_screen();
+    print(0, "Error: unhandled interrupt detected causing double fault");
+    unsafe { halt(); };
 }
 
 /// Loads one IDT descriptor at the given index into the IDT. An IRQ at this index would call the IR at the given address.
@@ -162,16 +207,19 @@ pub fn load_idt() {
     const IDT_REGISTER_ADDRESS: u32 = 0x11800;
     const IDT_DESCRIPTORS_AMOUNT: usize = 256;
 
-    create_idt_descriptor(0, (handle_division_by_zero as *const()) as u32);
+    for index in 0..IDT_DESCRIPTORS_AMOUNT {
+        create_idt_descriptor(index, (halt as *const ()) as u32);
+    }
 
     /* TODO: #121 for now, all the IRQ would trigger the same IR, that simply halts the system;
        the IR to call should be specific to every IRQ */
-    for index in 1..IDT_DESCRIPTORS_AMOUNT {
 
-        /* "handle_error" must be private in order to get
-           an in-memory address at this line (and not an in-kernel file address) */
-        create_idt_descriptor(index, (handle_error as *const ()) as u32);
-    }
+    create_idt_descriptor(0, (handle_division_by_zero as *const()) as u32);
+    create_idt_descriptor(3, (handle_debug_breakpoint as *const()) as u32);
+    create_idt_descriptor(4, (handle_overflow as *const()) as u32);
+    create_idt_descriptor(5, (handle_array_index_out_range as *const()) as u32);
+    create_idt_descriptor(6, (handle_invalid_code_instruction as *const()) as u32);
+    create_idt_descriptor(8, (handle_unhandled_interrupt as *const()) as u32);
 
     unsafe {
         *(IDT_REGISTER_ADDRESS as *mut IDTRegister) = IDTRegister {
