@@ -166,6 +166,7 @@ fn handle_invalid_code_instruction() {
     unsafe { halt(); };
 }
 
+/// Handler for any unhandled interrupt
 fn handle_unhandled_interrupt() {
 
     clear_screen();
