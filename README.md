@@ -1036,6 +1036,14 @@ Enable the UI debugger by adding the following line into the `.bochsrc` file:
 display_library: x, options="gui_debug"
 ```
 
+Debugging interrupts are handled by the system through the IDT.
+You can simply triggers this interrupt by calling interrupt number 3 into the code:
+
+```rust
+asm!("int 0x3" :::: "intel");
+```
+
+
 ### Logs
 
 Enable logs of one specific hardware item. For instance, PIT:
