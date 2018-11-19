@@ -2,6 +2,8 @@
 
 A very basic OS for self-learning purposes.
 
+![Image 1](screenshot.png)
+
 ## Table of content
 
 - [Tasks in progress](#tasks-in-progress)
