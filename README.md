@@ -58,7 +58,7 @@ A very basic OS for self-learning purposes.
 Bochs and Nasm are required to install and run smallOS.
 
 ```sh
-apt-get install bochs nasm dosfstools gcc-multilib
+apt-get install bochs bochs-x nasm dosfstools gcc-multilib lld
 ```
 
 Note that `gcc-multilib` is only required on a 64 bits host environment, in order to use `libgcc` in 32 bits to compile xargo just after.
@@ -73,6 +73,12 @@ Run the installation script and select the following answers:
  * Toolchain: `nightly`: we want to use the latest Rust features,
  * Profile: `default`: no matter if we include a lot of default tools and data with our Rust installation,
  * Modify PATH variable: `yes`
+
+Install rust-src:
+
+```sh
+rustup component add rust-src
+```
 
 Install xargo:
 

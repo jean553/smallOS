@@ -5,6 +5,8 @@
 extern crate video;
 extern crate hal;
 
+use core::panic::PanicInfo;
+
 use video::{
     print,
     printi32,
@@ -153,6 +155,8 @@ pub extern fn eh_personality() {
 }
 
 /// panic_fmt is used directly when a panic is thrown. This function is required when no standard library is used, but as the kernel is bare-metal for now, we keep things simple and do not take any specific action on panic.
-#[lang = "panic_fmt"] #[no_mangle]
-pub extern fn panic_fmt() {
+#[panic_handler]
+pub extern fn panic_fmt(_info: &PanicInfo) -> ! {
+
+    loop {}
 }
