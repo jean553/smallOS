@@ -1,4 +1,4 @@
-#![feature(lang_items, asm)]
+#![feature(lang_items, llvm_asm)]
 #![no_std]
 #![no_main]
 
@@ -29,7 +29,7 @@ use hal::{
 
 /// Halts the system, defined here as it might be required multiple times.
 fn halt() {
-    unsafe { asm!("hlt"); }
+    unsafe { llvm_asm!("hlt"); }
 }
 
 /// Displays the memory mapping on screen (from data loaded by Stage2).
