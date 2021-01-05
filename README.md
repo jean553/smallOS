@@ -53,10 +53,37 @@ A very basic OS for self-learning purposes.
 
 ## Installation
 
+### Ubuntu 20.04 LTS
+
 Bochs and Nasm are required to install and run smallOS.
 
 ```sh
-apt-get install bochs nasm dosfstools
+apt-get install bochs nasm dosfstools gcc-multilib
+```
+
+Note that `gcc-multilib` is only required on a 64 bits host environment, in order to use `libgcc` in 32 bits to compile xargo just after.
+
+Install Rust from [here](https://www.rust-lang.org/tools/install) (official website).
+
+Run the installation script and select the following answers:
+ * Host triple: `i686-unknown-linux-gnu`: 
+    * "host" (so "compiling code environment") we use to compile our code in format `cpu-vendor-os`; i686 as we use a x86 32 bits CPU features for compilation (even if we can compile with a 64 bits CPU, we want to keep everything in 32 bits environments as smallOS is running on a 32 bits CPU),
+    * the vendor is `unknown` as we want keep things as simple as possible and we do not want add specific stuffs for `pc` for instance; 
+    * `linux-gnu` for OS as we are compiling on Linux and its GNU ABI,
+ * Toolchain: `nightly`: we want to use the latest Rust features,
+ * Profile: `default`: no matter if we include a lot of default tools and data with our Rust installation,
+ * Modify PATH variable: `yes`
+
+Install xargo:
+
+```sh
+cargo install xargo
+```
+
+In case some libraries are not found, it may be required to force the libraries path location:
+
+```
+export LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LIBRARY_PATH
 ```
 
 ## Build the project
@@ -71,10 +98,6 @@ The command runs a makefile that handle:
  * virtual hard drive creation,
  * files and sectors copy to the hard drive,
  * launch Bochs for emulation,
-
-NOTE: be sure you have the correct Rust toolchain installted,
-check `Rust integration / 32 bits compilation` section.
-The expected toolchain is `nightly-i686-unknown-linux-gnu`.
 
 ## Destroy the project
 
