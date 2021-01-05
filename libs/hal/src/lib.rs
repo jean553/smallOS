@@ -1,6 +1,6 @@
 //! SmallOS Hardware Abstraction Layer library
 #![allow(unused_assignments, dead_code)]
-#![feature(asm)]
+#![feature(llvm_asm)]
 #![no_std]
 
 extern crate video;
@@ -108,17 +108,17 @@ struct PageTableEntry {
 ///
 /// IMPORTANT: must be private in order to return in-memory address when call "halt as *const ()"
 unsafe fn halt() {
-    asm!("hlt");
+    llvm_asm!("hlt");
 }
 
 /// Disable interrupts.
 pub unsafe fn disable_interrupts() {
-    asm!("cli" :::: "intel");
+    llvm_asm!("cli" :::: "intel");
 }
 
 /// Enable interrupts.
 pub unsafe fn enable_interrupts() {
-    asm!("sti" :::: "intel");
+    llvm_asm!("sti" :::: "intel");
 }
 
 /// Handler for the interrupt of a division by zero
@@ -227,7 +227,7 @@ pub fn load_idt() {
             base: IDT_START_ADDRESS as u32,
         };
 
-        asm!("lidt ($0)" :: "r" (IDT_REGISTER_ADDRESS));
+        llvm_asm!("lidt ($0)" :: "r" (IDT_REGISTER_ADDRESS));
     }
 }
 
@@ -245,7 +245,7 @@ pub fn is_intel_cpu() -> bool {
        the ebx value as it should be 0x756E6547
        for Intel */
     unsafe {
-        asm!("
+        llvm_asm!("
             mov eax, 0
             cpuid
             " : "={ebx}"(vendor_name_first_part) ::: "intel"
@@ -289,7 +289,7 @@ pub fn initialize_pic() {
     unsafe {
 
         /* master and slave PIC initialization */
-        asm!("
+        llvm_asm!("
             mov al, $0
             out 0x20, al
             out 0xA0, al
@@ -319,14 +319,14 @@ pub fn initialize_pic() {
     const SLAVE_PIC_IRQ_BASE_INDEX: u8 = 0x28;
     unsafe {
         /* set the master PIC IRQs base index */
-        asm!("
+        llvm_asm!("
             mov al, $0
             out 0x21, al
             " :: "r" (MASTER_PIC_IRQ_BASE_INDEX) :: "intel"
         );
 
         /* set the secondary PIC IRQs base index */
-        asm!("
+        llvm_asm!("
             mov al, $0
             out 0xA1, al
             " :: "r" (SLAVE_PIC_IRQ_BASE_INDEX) :: "intel"
@@ -355,14 +355,14 @@ pub fn initialize_pic() {
     const SECOND_TO_MASTER_PIC_SELECTOR: u8 = 2;
     unsafe {
         /* connect the master PIC to the slave PIC */
-        asm!("
+        llvm_asm!("
             mov al, $0
             out 0x21, al
             " :: "r" (MASTER_TO_SECOND_PIC_SELECTOR) :: "intel"
         );
 
         /* connect the slave PIC to the master PIC */
-        asm!("
+        llvm_asm!("
             mov al, $0
             out 0xA1, al
             " :: "r" (SECOND_TO_MASTER_PIC_SELECTOR) :: "intel"
@@ -381,7 +381,7 @@ pub fn initialize_pic() {
      * without fully nested mode, without buffering (we keep things simple for now) */
     const PIC_FOURTH_ICW: u8 = 0b00000001;
     unsafe {
-        asm!("
+        llvm_asm!("
             mov al, $0
             out 0x21, al
             out 0xA1, al
@@ -397,7 +397,7 @@ pub fn initialize_pic() {
 unsafe fn increment_ticks() {
 
     /* ax is the only modified register during the interrupt handler execution */
-    asm!("push ax" :::: "intel");
+    llvm_asm!("push ax" :::: "intel");
 
     /* increment the ticks amount */
     *(0x11806 as *mut u32) += 1;
@@ -406,7 +406,7 @@ unsafe fn increment_ticks() {
        this is an interrupt handler, so EFLAGS, CS and EIP
        have to be popped from the stack before returning
        to the main code, so we use iretd */
-    asm!("
+    llvm_asm!("
         mov al, 0x20
         out 0x20, al
         pop ax
@@ -545,7 +545,7 @@ pub fn initialize_pit() {
         this ICW is sent to the port 0x43, which is the PIT control word port */
     const PIT_ICW: u8 = 0b00110100;
     unsafe {
-        asm!("
+        llvm_asm!("
             mov al, $0
             out 0x43, al
             " :: "r" (PIT_ICW) :: "intel"
@@ -556,12 +556,12 @@ pub fn initialize_pit() {
        so we divide the default frequency 1193180 by 100 */
     const COUNT: u16 = 11932;
     unsafe {
-        asm!("
+        llvm_asm!("
             mov al, $0
             out 0x40, al
             " :: "r" ((COUNT & 0xff) as u8) :: "intel"
         );
-        asm!("
+        llvm_asm!("
             mov al, $0
             out 0x40, al
             " :: "r" (((COUNT >> 8) & 0xff) as u8) :: "intel"
@@ -768,13 +768,13 @@ pub fn load_pagination() {
        and enable pagination (bit 31 of CR0) */
 
     unsafe {
-        asm!("
+        llvm_asm!("
             mov eax, $0
             mov cr3, eax
             " :: "r" (PAGES_DIRECTORY_ADDRESS) :: "intel"
         );
 
-        asm!("
+        llvm_asm!("
             mov eax, cr0
             or eax, 0x80000000
             mov cr0, eax
@@ -786,7 +786,7 @@ pub fn load_pagination() {
 /// Interrupt routine for any keyboard action.
 fn handle_keyboard_interrupt() {
 
-    unsafe { asm!("push ax" :::: "intel"); };
+    unsafe { llvm_asm!("push ax" :::: "intel"); };
 
     let mut status_register: u8 = 0;
 
@@ -817,7 +817,7 @@ fn handle_keyboard_interrupt() {
 
     const KEYBOARD_CONTROLLER_PORT: u8 = 0x64;
     unsafe {
-        asm!("
+        llvm_asm!("
             in al, 0x64
             " : "={al}"(status_register) ::: "intel"
         );
@@ -833,7 +833,7 @@ fn handle_keyboard_interrupt() {
     if (status_register & OUTPUT_BUFFER_FULL) != OUTPUT_BUFFER_FULL {
 
         unsafe {
-            asm!("
+            llvm_asm!("
                 pop ax
                 iretd
                 " :::: "intel"
@@ -844,7 +844,7 @@ fn handle_keyboard_interrupt() {
     /* TODO: get the keyboard action */
 
     unsafe {
-        asm!("
+        llvm_asm!("
             pop ax
             iretd
             " :::: "intel"
