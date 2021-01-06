@@ -58,7 +58,7 @@ A very basic OS for self-learning purposes.
 Bochs and Nasm are required to install and run smallOS.
 
 ```sh
-apt-get install bochs bochs-x nasm dosfstools gcc-multilib lld
+apt-get install bochs bochs-x nasm dosfstools gcc-multilib lld vgabios
 ```
 
 Note that `gcc-multilib` is only required on a 64 bits host environment, in order to use `libgcc` in 32 bits to compile xargo just after.
